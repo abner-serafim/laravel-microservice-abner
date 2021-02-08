@@ -4,8 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, Traids\Uuid;
+
+    protected $fillable = ['name', 'description', 'is_active'];
+    protected $dates = ['deleted_at'];
+    protected $casts = [
+        'id' => 'string'
+    ];
 }
