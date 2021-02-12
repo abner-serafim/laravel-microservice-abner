@@ -58,4 +58,14 @@ class GenreTest extends TestCase
             self::assertEquals($value, $genre->{$key});
         }
     }
+
+    public function testDelete()
+    {
+        $genre = Genre::factory()->create();
+        $genre->delete();
+        self::assertNull(Genre::find($genre->id));
+
+        $genre->restore();
+        self::assertNotNull(Genre::find($genre->id));
+    }
 }

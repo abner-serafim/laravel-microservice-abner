@@ -61,4 +61,14 @@ class CategoryTest extends TestCase
             self::assertEquals($value, $category->{$key});
         }
     }
+
+    public function testDelete()
+    {
+        $category = Category::factory()->create();
+        $category->delete();
+        self::assertNull(Category::find($category->id));
+
+        $category->restore();
+        self::assertNotNull(Category::find($category->id));
+    }
 }
