@@ -6,6 +6,7 @@ use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Ramsey\Uuid\Uuid;
 use Tests\TestCase;
 
 class GenreTest extends TestCase
@@ -33,6 +34,7 @@ class GenreTest extends TestCase
         $genre = Genre::create(["name" => "Teste"]);
         $genre->refresh();
 
+        $this->assertTrue(Uuid::isValid($genre->id));
         $this->assertEquals("Teste", $genre->name);
         $this->assertTrue($genre->is_active);
 
