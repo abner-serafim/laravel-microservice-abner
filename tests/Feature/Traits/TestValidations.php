@@ -8,6 +8,12 @@ use Illuminate\Testing\TestResponse;
 
 trait TestValidations
 {
+    protected $validRequired = 'validation.required';
+    protected $validMax = 'validation.max.string';
+    protected $validBool = 'validation.boolean';
+
+    protected $limitMax = ['max' => 255];
+
     protected function assertInvalidationInStoreAction(
         array $data,
         string $rule,
