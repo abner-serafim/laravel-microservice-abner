@@ -12,10 +12,12 @@ trait TestValidations
     protected $validNullable = 'validation.nullable';
     protected $validInteger = 'validation.integer';
     protected $validIn = 'validation.in';
+    protected $validDateFormat = 'validation.date_format';
     protected $validMax = 'validation.max.string';
     protected $validBool = 'validation.boolean';
 
     protected $limitMax = ['max' => 255];
+    protected $formatY = ['format' => 'Y'];
 
     protected abstract function getModel();
     protected abstract function getRouteStore();

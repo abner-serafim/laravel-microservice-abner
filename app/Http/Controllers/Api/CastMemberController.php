@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\CastMember;
-use Illuminate\Http\Request;
 
 class CastMemberController extends BasicCrudController
 {

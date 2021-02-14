@@ -13,7 +13,7 @@ class CategoryStub extends Model
     public static function createTable()
     {
         \Schema::create('category_stubs', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->id();
             $table->string('name');
             $table->text('description')->nullable();
             $table->timestamps();

@@ -15,9 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
         $this->call([
+            CastMemberSeeder::class,
             CategorySeeder::class,
             GenreSeeder::class,
-            CastMemberSeeder::class,
+            VideoSeeder::class
         ]);
     }
 }

@@ -10,7 +10,7 @@ trait TestSaves
 {
     protected abstract function getModel();
 
-    protected function assertStore(array $sendData, array $testDatabase, array $testJsonData = []): TestResponse
+    protected function assertStore(array $sendData, array $testDatabase, array $testJsonData = null): TestResponse
     {
         /** @var TestResponse $response */
         $response = $this->json('POST', $this->getRouteStore(), $sendData);
@@ -22,7 +22,7 @@ trait TestSaves
         return $response;
     }
 
-    protected function assertUpdate(array $sendData, array $testDatabase, array $testJsonData = []): TestResponse
+    protected function assertUpdate(array $sendData, array $testDatabase, array $testJsonData = null): TestResponse
     {
         /** @var TestResponse $response */
         $response = $this->json('PUT', $this->getRouteUpdate(), $sendData);
@@ -41,7 +41,7 @@ trait TestSaves
         $this->assertDatabaseHas($table, $testDatabase + ["id" => $response->json('id')]);
     }
 
-    private function assertJsonResponseContent(TestResponse $response, array $testDatabase, array $testJsonData)
+    private function assertJsonResponseContent(TestResponse $response, array $testDatabase, array $testJsonData = null)
     {
         $testResponse = $testJsonData ?? $testDatabase;
         $response->assertJsonFragment($testResponse + ["id" => $response->json('id')]);
