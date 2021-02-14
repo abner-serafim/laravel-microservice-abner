@@ -2,68 +2,28 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 
-class CategoryController extends Controller
+class CategoryController extends BasicCrudController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Category[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Http\Response
-     */
-    public function index()
+    private $rules = [
+        'name' => 'required|max:255',
+        'description' => 'nullable',
+        'is_active' => 'boolean'
+    ];
+
+    protected function getModel(): string
     {
-        return Category::all();
+        return Category::class;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  CategoryRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(CategoryRequest $request)
+    protected function getRulesStore(): array
     {
-        $category = Category::create($request->all());
-        $category->refresh();
-        return $category;
+        return $this->rules;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Category  $category
-     * @return Category
-     */
-    public function show(Category $category)
+    protected function getRulesUpdate(): array
     {
-        return $category;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  CategoryRequest  $request
-     * @param  \App\Models\Category  $category
-     * @return Category
-     */
-    public function update(CategoryRequest $request, Category $category)
-    {
-        $category->update($request->all());
-        return $category;
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Category $category)
-    {
-        $category->delete();
-        return response()->noContent();
+        return $this->rules;
     }
 }

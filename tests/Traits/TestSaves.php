@@ -1,13 +1,15 @@
 <?php
 
 
-namespace Tests\Feature\Traits;
+namespace Tests\Traits;
 
 
 use Illuminate\Testing\TestResponse;
 
 trait TestSaves
 {
+    protected abstract function getModel();
+
     protected function assertStore(array $sendData, array $testDatabase, array $testJsonData = []): TestResponse
     {
         /** @var TestResponse $response */
@@ -25,7 +27,7 @@ trait TestSaves
         /** @var TestResponse $response */
         $response = $this->json('PUT', $this->getRouteUpdate(), $sendData);
         if ($response->status() !== 200) {
-            throw new \Exception("Responsse status must be 201, given {$response->status()}:\n{$response->content()}");
+            throw new \Exception("Responsse status must be 200, given {$response->status()}:\n{$response->content()}");
         }
         $this->assertInDatabase($response, $testDatabase);
         $this->assertJsonResponseContent($response, $testDatabase, $testJsonData);

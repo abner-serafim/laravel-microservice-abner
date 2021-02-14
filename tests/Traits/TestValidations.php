@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Tests\Feature\Traits;
+namespace Tests\Traits;
 
 
 use Illuminate\Testing\TestResponse;
@@ -9,10 +9,17 @@ use Illuminate\Testing\TestResponse;
 trait TestValidations
 {
     protected $validRequired = 'validation.required';
+    protected $validNullable = 'validation.nullable';
+    protected $validInteger = 'validation.integer';
+    protected $validIn = 'validation.in';
     protected $validMax = 'validation.max.string';
     protected $validBool = 'validation.boolean';
 
     protected $limitMax = ['max' => 255];
+
+    protected abstract function getModel();
+    protected abstract function getRouteStore();
+    protected abstract function getRouteUpdate();
 
     protected function assertInvalidationInStoreAction(
         array $data,

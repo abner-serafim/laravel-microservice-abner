@@ -4,8 +4,8 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Category;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Tests\Feature\Traits\TestSaves;
-use Tests\Feature\Traits\TestValidations;
+use Tests\Traits\TestSaves;
+use Tests\Traits\TestValidations;
 use Tests\TestCase;
 
 class CategoryControllerTest extends TestCase
@@ -101,7 +101,7 @@ class CategoryControllerTest extends TestCase
         $this->assertUpdate($data, array_merge($data, ['description' => null]));
     }
 
-    public function testDelete()
+    public function testDestroy()
     {
         $response = $this->json('DELETE', route('api.categories.destroy', $this->category->id));
 
