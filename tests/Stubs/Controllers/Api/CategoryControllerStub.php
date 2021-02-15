@@ -4,6 +4,7 @@ namespace Tests\Stubs\Controllers\Api;
 
 use App\Http\Controllers\Api\BasicCrudController;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Tests\Stubs\Models\CategoryStub;
 
 class CategoryControllerStub extends BasicCrudController
@@ -27,5 +28,10 @@ class CategoryControllerStub extends BasicCrudController
             'name' => 'nullable|max:255',
             'description' => 'nullable',
         ];
+    }
+
+    protected function handleRelations($obj, Request $request): void
+    {
+
     }
 }

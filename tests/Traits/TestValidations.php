@@ -12,6 +12,8 @@ trait TestValidations
     protected $validNullable = 'validation.nullable';
     protected $validInteger = 'validation.integer';
     protected $validIn = 'validation.in';
+    protected $validArray = 'validation.array';
+    protected $validExists = 'validation.exists';
     protected $validDateFormat = 'validation.date_format';
     protected $validMax = 'validation.max.string';
     protected $validBool = 'validation.boolean';

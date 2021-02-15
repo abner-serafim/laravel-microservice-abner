@@ -18,4 +18,9 @@ class Genre extends Model
     ];
 
     public $incrementing = false;
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
 }

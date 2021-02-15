@@ -48,38 +48,38 @@ class VideoTest extends TestCase
 
     public function testCreate()
     {
-        $category = Video::create($this->sendData);
-        $category->refresh();
+        $video = Video::create($this->sendData);
+        $video->refresh();
 
-        $this->assertTrue(Uuid::isValid($category->id));
+        $this->assertTrue(Uuid::isValid($video->id));
 
         foreach ($this->sendData AS $key => $value) {
-            self::assertEquals($value, $category->{$key});
+            self::assertEquals($value, $video->{$key});
         }
-        $this->assertNotNull($category->description);
-        $this->assertTrue($category->opened);
+        $this->assertNotNull($video->description);
+        $this->assertTrue($video->opened);
     }
 
     public function testUpdate()
     {
-        $categoryAll = Video::factory(1)->create();
-        $category = $categoryAll->first();
+        $videoAll = Video::factory(1)->create();
+        $video = $videoAll->first();
 
-        $category->update($this->sendData);
-        $category = Video::find($category->id);
+        $video->update($this->sendData);
+        $video = Video::find($video->id);
 
         foreach ($this->sendData AS $key => $value) {
-            self::assertEquals($value, $category->{$key});
+            self::assertEquals($value, $video->{$key});
         }
     }
 
     public function testDelete()
     {
-        $category = Video::factory()->create();
-        $category->delete();
-        self::assertNull(Video::find($category->id));
+        $video = Video::factory()->create();
+        $video->delete();
+        self::assertNull(Video::find($video->id));
 
-        $category->restore();
-        self::assertNotNull(Video::find($category->id));
+        $video->restore();
+        self::assertNotNull(Video::find($video->id));
     }
 }

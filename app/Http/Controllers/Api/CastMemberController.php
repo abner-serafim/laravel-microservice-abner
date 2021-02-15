@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\CastMember;
+use Illuminate\Http\Request;
 
 class CastMemberController extends BasicCrudController
 {
@@ -29,5 +30,10 @@ class CastMemberController extends BasicCrudController
     protected function getRulesUpdate(): array
     {
         return $this->rules;
+    }
+
+    protected function handleRelations($obj, Request $request): void
+    {
+
     }
 }

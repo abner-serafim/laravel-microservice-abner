@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends BasicCrudController
 {
@@ -25,5 +26,10 @@ class CategoryController extends BasicCrudController
     protected function getRulesUpdate(): array
     {
         return $this->rules;
+    }
+
+    protected function handleRelations($obj, Request $request): void
+    {
+
     }
 }

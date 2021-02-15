@@ -19,31 +19,19 @@ class VideoController extends BasicCrudController
             'opened' => 'boolean',
             'rating' => 'required|in:' . implode(',', Video::RATING_LIST),
             'duration' => 'required|integer',
-            'categories_id' => 'required|array|exists:categories,id',
-            'genres_id' => 'required|array|exists:genres,id'
+            'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
+            'genres_id' => 'required|array|exists:genres,id,deleted_at,NULL'
         ];
     }
 
-    public function store(Request $request): Model
+    /**
+     * @param Video $video
+     * @param Request $request
+     */
+    protected function handleRelations($video, Request $request): void
     {
-        $validationData = $this->validate($request, $this->getRulesStore());
-        /** @var Video $obj */
-        $obj = $this->getModel()::create($validationData);
-        $obj->categories()->sync($request->get('categories_id'));
-        $obj->genres()->sync($request->get('genres_id'));
-        $obj->refresh();
-        return $obj;
-    }
-
-    public function update(Request $request, $id): Model
-    {
-        $validationData = $this->validate($request, $this->getRulesUpdate());
-        /** @var Video $obj */
-        $obj = $this->findOrFail($id);
-        $obj->update($validationData);
-        $obj->categories()->sync($request->get('categories_id'));
-        $obj->genres()->sync($request->get('genres_id'));
-        return $obj;
+        $video->categories()->sync($request->get('categories_id'));
+        $video->genres()->sync($request->get('genres_id'));
     }
 
     protected function getModel(): string
