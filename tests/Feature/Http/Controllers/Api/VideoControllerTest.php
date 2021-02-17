@@ -293,6 +293,94 @@ class VideoControllerTest extends TestCase
         self::assertTrue($hasError);
     }
 
+    public function testSyncCategories()
+    {
+        $categoriesId = Category::factory(3)->create()->pluck('id')->toArray();
+        $genre = Genre::factory()->create();
+        $genre->categories()->sync($categoriesId);
+        $genreId = $genre->id;
+
+        $response = $this->json(
+            'POST',
+            $this->getRouteStore(),
+            $this->sendData + [
+                'genres_id' => [$genreId],
+                'categories_id' => [$categoriesId[0]]
+            ]
+        );
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoriesId[0],
+            'video_id' => $response->json('id'),
+        ]);
+
+        $sendData = $this->sendData + [
+            'genres_id' => [$genreId],
+            'categories_id' => [$categoriesId[1], $categoriesId[2]]
+        ];
+        $response = $this->json(
+            'PUT',
+            route('api.videos.update', $response->json('id')),
+            $sendData
+        );
+        $this->assertDatabaseMissing('category_video', [
+            'category_id' => $categoriesId[0],
+            'video_id' => $response->json('id'),
+        ]);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoriesId[1],
+            'video_id' => $response->json('id'),
+        ]);
+        $this->assertDatabaseHas('category_video', [
+            'category_id' => $categoriesId[2],
+            'video_id' => $response->json('id'),
+        ]);
+    }
+
+    public function testSyncGenres()
+    {
+        $genres = Genre::factory(3)->create();
+        $genreId = $genres->pluck('id')->toArray();
+        $categoryId = Category::factory()->create()->id;
+        $genres->each(function ($genre) use ($categoryId) {
+            $genre->categories()->sync($categoryId);
+        });
+
+        $response = $this->json(
+            'POST',
+            $this->getRouteStore(),
+            $this->sendData + [
+                'categories_id' => [$categoryId],
+                'genres_id' => [$genreId[0]]
+            ]
+        );
+        $this->assertDatabaseHas('genre_video', [
+            'genre_id' => $genreId[0],
+            'video_id' => $response->json('id'),
+        ]);
+
+        $sendData = $this->sendData + [
+            'categories_id' => [$categoryId],
+            'genres_id' => [$genreId[1], $genreId[2]]
+        ];
+        $response = $this->json(
+            'PUT',
+            route('api.videos.update', $response->json('id')),
+            $sendData
+        );
+        $this->assertDatabaseMissing('genre_video', [
+            'genre_id' => $genreId[0],
+            'video_id' => $response->json('id'),
+        ]);
+        $this->assertDatabaseHas('genre_video', [
+            'genre_id' => $genreId[1],
+            'video_id' => $response->json('id'),
+        ]);
+        $this->assertDatabaseHas('genre_video', [
+            'genre_id' => $genreId[2],
+            'video_id' => $response->json('id'),
+        ]);
+    }
+
     public function testDestroy()
     {
         $response = $this->json('DELETE', route('api.videos.destroy', $this->video->id));
