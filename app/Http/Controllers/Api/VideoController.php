@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Video;
 use App\Rules\GenresHasCategoriesRule;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 class VideoController extends BasicCrudController
 {
+    protected bool $useTransaction = false;
     private $rules;
 
     public function __construct()
@@ -29,14 +29,9 @@ class VideoController extends BasicCrudController
         ];
     }
 
-    /**
-     * @param Video $video
-     * @param Request $request
-     */
     protected function handleRelations($video, Request $request): void
     {
-        $video->categories()->sync($request->get('categories_id'));
-        $video->genres()->sync($request->get('genres_id'));
+
     }
 
     public function validate(Request $request, array $rules, array $messages = [], array $customAttributes = [])
