@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 abstract class BasicCrudController extends Controller
 {
@@ -29,7 +30,7 @@ abstract class BasicCrudController extends Controller
 
         if ($this->useTransaction) {
             /** @var Model $obj */
-            $obj = \DB::transaction(function () use ($request, $validationData, $self) {
+            $obj = DB::transaction(function () use ($request, $validationData, $self) {
                 return $self->storeDB($request, $validationData);
             });
         } else {
@@ -68,7 +69,7 @@ abstract class BasicCrudController extends Controller
 
         if ($this->useTransaction) {
             /** @var Model $obj */
-            $obj = \DB::transaction(function () use ($request, $id, $validationData, $self) {
+            $obj = DB::transaction(function () use ($request, $id, $validationData, $self) {
                 return $self->updateDB($request, $id, $validationData);
             });
         } else {

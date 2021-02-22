@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traids\UploadFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Video extends Model
 {
-    use HasFactory, SoftDeletes, Traids\Uuid;
+    use HasFactory, SoftDeletes, Traids\Uuid, UploadFiles;
 
     const RATING_LIVRE = 'L';
     const RATING_10 = '10';
@@ -26,7 +28,7 @@ class Video extends Model
         self::RATING_18,
     ];
 
-    protected $fillable = ['title', 'description', 'year_launched', 'opened', 'rating', 'duration'];
+    protected $fillable = ['title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file'];
     protected $dates = ['deleted_at'];
     protected $casts = [
         'id' => 'string',
@@ -36,22 +38,24 @@ class Video extends Model
     ];
 
     public $incrementing = false;
+    public static array $fileFields = ['video_file'];
 
     public static function create(array $attributes = [])
     {
+        $files = self::extractFiles($attributes);
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
             /** @var Video $video */
             $video = static::query()->create($attributes);
-
             static::handleRelations($video, $attributes);
-            \DB::commit();
+            $video->uploadFiles($files);
+            DB::commit();
             return $video;
         } catch (\Exception $e) {
             if (isset($video)) {
                 // TODO: excluir $obj
             }
-            \DB::rollBack();
+            DB::rollBack();
             throw $e;
         }
     }
@@ -59,18 +63,18 @@ class Video extends Model
     public function update(array $attributes = [], array $options = [])
     {
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
             $saved = parent::update($attributes, $options);
             if ($saved) {
                 // TODO: upload files
                 // TODO: remove olds
                 static::handleRelations($this, $attributes);
             }
-            \DB::commit();
+            DB::commit();
             return $saved;
         } catch (\Exception $e) {
             // TODO: excluir uploads
-            \DB::rollBack();
+            DB::rollBack();
             $this->refresh();
             throw $e;
         }
@@ -94,5 +98,10 @@ class Video extends Model
     public function genres()
     {
         return $this->belongsToMany(Genre::class);
+    }
+
+    protected function uploadDir()
+    {
+        return date("Y-m");
     }
 }
