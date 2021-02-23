@@ -102,6 +102,12 @@ class Video extends Model
 
     protected function uploadDir()
     {
-        return date("Y-m");
+        $created_at = substr($this->created_at, 0, 7);
+        return str_replace("-", "/", $created_at) . "/" . $this->id;
+    }
+
+    public function getUploadDir()
+    {
+        return $this->uploadDir();
     }
 }
