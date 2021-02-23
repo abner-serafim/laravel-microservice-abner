@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Video;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 abstract class BasicCrudController extends Controller
 {
+    protected bool $useTransaction = true;
+
     protected abstract function getModel(): string;
     protected abstract function getRulesStore(): array;
     protected abstract function getRulesUpdate(): array;
@@ -25,15 +27,25 @@ abstract class BasicCrudController extends Controller
     {
         $validationData = $this->validate($request, $this->getRulesStore());
         $self = $this;
-        /** @var Model $obj */
-        $obj = \DB::transaction(function () use ($request, $validationData, $self) {
+
+        if ($this->useTransaction) {
             /** @var Model $obj */
-            $obj = $self->getModel()::create($validationData);
-            $self->handleRelations($obj, $request);
-            return $obj;
-        });
+            $obj = DB::transaction(function () use ($request, $validationData, $self) {
+                return $self->storeDB($request, $validationData);
+            });
+        } else {
+            /** @var Model $obj */
+            $obj = $this->storeDB($request, $validationData);
+        }
 
         $obj->refresh();
+        return $obj;
+    }
+
+    public function storeDB(Request $request, array $validationData)
+    {
+        $obj = $this->getModel()::create($validationData);
+        $this->handleRelations($obj, $request);
         return $obj;
     }
 
@@ -54,14 +66,25 @@ abstract class BasicCrudController extends Controller
     {
         $validationData = $this->validate($request, $this->getRulesUpdate());
         $self = $this;
-        /** @var Video $obj */
-        $obj = \DB::transaction(function () use ($request, $id, $validationData, $self) {
-            /** @var Video $obj */
-            $obj = $self->findOrFail($id);
-            $obj->update($validationData);
-            $self->handleRelations($obj, $request);
-            return $obj;
-        });
+
+        if ($this->useTransaction) {
+            /** @var Model $obj */
+            $obj = DB::transaction(function () use ($request, $id, $validationData, $self) {
+                return $self->updateDB($request, $id, $validationData);
+            });
+        } else {
+            /** @var Model $obj */
+            $obj = $self->updateDB($request, $id, $validationData);
+        }
+
+        return $obj;
+    }
+
+    public function updateDB(Request $request, $id, array $validationData)
+    {
+        $obj = $this->findOrFail($id);
+        $obj->update($validationData);
+        $this->handleRelations($obj, $request);
         return $obj;
     }
 
