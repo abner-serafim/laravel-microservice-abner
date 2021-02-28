@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\Traids\UploadFiles;
 use App\Models\Video;
 use App\Models\Traids\Uuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,13 +21,13 @@ class VideoTest extends TestCase
 
     public function testFillableAttribute()
     {
-        $fillable = ['title', 'description', 'duration', 'opened', 'rating', 'year_launched'];
+        $fillable = ['title', 'description', 'duration', 'opened', 'rating', 'year_launched', 'video_file', 'thumb_file'];
         $this->assertEqualsCanonicalizing($fillable, $this->video->getFillable());
     }
 
     public function testIfUseTraitsAttribute()
     {
-        $traits = [HasFactory::class, SoftDeletes::class, Uuid::class];
+        $traits = [HasFactory::class, SoftDeletes::class, Uuid::class, UploadFiles::class];
         $videoTraits = array_keys(class_uses(Video::class));
         $this->assertEqualsCanonicalizing($traits, $videoTraits);
     }

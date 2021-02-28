@@ -28,7 +28,16 @@ class Video extends Model
         self::RATING_18,
     ];
 
-    protected $fillable = ['title', 'description', 'year_launched', 'opened', 'rating', 'duration', 'video_file'];
+    protected $fillable = [
+        'title',
+        'description',
+        'year_launched',
+        'opened',
+        'rating',
+        'duration',
+        'video_file',
+        'thumb_file',
+    ];
     protected $dates = ['deleted_at'];
     protected $casts = [
         'id' => 'string',
@@ -38,7 +47,7 @@ class Video extends Model
     ];
 
     public $incrementing = false;
-    public static array $fileFields = ['video_file'];
+    public static array $fileFields = ['video_file', 'thumb_file'];
 
     public static function create(array $attributes = [])
     {
@@ -53,7 +62,7 @@ class Video extends Model
             return $video;
         } catch (\Exception $e) {
             if (isset($video)) {
-                // TODO: excluir $obj
+                $video->deleteFiles($files);
             }
             DB::rollBack();
             throw $e;
@@ -62,18 +71,21 @@ class Video extends Model
 
     public function update(array $attributes = [], array $options = [])
     {
+        $files = self::extractFiles($attributes);
         try {
             DB::beginTransaction();
             $saved = parent::update($attributes, $options);
             if ($saved) {
-                // TODO: upload files
-                // TODO: remove olds
                 static::handleRelations($this, $attributes);
+                $this->uploadFiles($files);
             }
             DB::commit();
+            if ($saved && sizeof($files)) {
+                $this->deleteOldFiles();
+            }
             return $saved;
         } catch (\Exception $e) {
-            // TODO: excluir uploads
+            $this->deleteFiles($files);
             DB::rollBack();
             $this->refresh();
             throw $e;
