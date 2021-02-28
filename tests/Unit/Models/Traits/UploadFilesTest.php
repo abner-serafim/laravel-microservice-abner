@@ -19,7 +19,7 @@ class UploadFilesTest extends TestCase
 
     public function testUploadFile()
     {
-        Storage::fake();
+        //Storage::fake();
         $file = UploadedFile::fake()->create('video.mp4');
         $this->uploadFilesStub->uploadFile($file);
         Storage::assertExists($this->uploadFilesStub->getUploadDir() . "/" . $file->hashName());
