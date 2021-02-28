@@ -37,6 +37,22 @@ class UploadFilesTest extends TestCase
         }
     }
 
+    public function testDeleteOldFiles()
+    {
+        Storage::fake();
+        $file1 = UploadedFile::fake()->create('video1.mp4')->size(1);
+        $file2 = UploadedFile::fake()->create('video2.mp4')->size(1);
+        $files = [$file1, $file2];
+        $this->uploadFilesStub->uploadFiles($files);
+        $this->uploadFilesStub->deleteOldFiles();
+        self::assertCount(2, Storage::allFiles());
+
+        $this->uploadFilesStub->oldFiles = [$file1->hashName()];
+        $this->uploadFilesStub->deleteOldFiles();
+        Storage::assertMissing($this->uploadFilesStub->getUploadDir() . "/" . $file1->hashName());
+        Storage::assertExists($this->uploadFilesStub->getUploadDir() . "/" . $file2->hashName());
+    }
+
     public function testDeleteFile()
     {
         Storage::fake();
@@ -102,6 +118,6 @@ class UploadFilesTest extends TestCase
         self::assertCount(3, $attributes);
         self::assertCount(1, $files);
         self::assertEquals(['file1' => 'name.mp4', 'file2' => $file2->hashName(), 'title' => 'title'], $attributes);
-        self::assertEquals([$file1], $files);
+        self::assertEquals([$file2], $files);
     }
 }
