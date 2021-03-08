@@ -17,12 +17,40 @@ use Tests\TestCase;
 
 class VideoUploadControllerTest extends VideoBaseControllerTest
 {
+    public function testInvalidationThumbField()
+    {
+        $this->assertInvalidationFile(
+            'thumb_file',
+            'jpg',
+            Video::FILE_MAX_SIZE_THUMB,
+            'validation.image'
+        );
+    }
+    public function testInvalidationBannerField()
+    {
+        $this->assertInvalidationFile(
+            'banner_file',
+            'jpg',
+            Video::FILE_MAX_SIZE_BANNER,
+            'validation.image'
+        );
+    }
+    public function testInvalidationTrailerField()
+    {
+        $this->assertInvalidationFile(
+            'trailer_file',
+            'mp4',
+            Video::FILE_MAX_SIZE_TRAILER,
+            'validation.mimetypes',
+            ['values' => 'video/mp4']
+        );
+    }
     public function testInvalidationVideoField()
     {
         $this->assertInvalidationFile(
             'video_file',
             'mp4',
-            1024,
+            Video::FILE_MAX_SIZE_VIDEO,
             'validation.mimetypes',
             ['values' => 'video/mp4']
         );
@@ -50,12 +78,10 @@ class VideoUploadControllerTest extends VideoBaseControllerTest
             $this->sendData + $cat_gen + $files
         );
 
+        //dd($response);
+
         $response->assertStatus(201);
-        /** @var Video $video */
-        $video = Video::find($response->json('id'));
-        foreach ($files AS $file) {
-            Storage::assertExists("{$video->getUploadDir()}/{$file->hashName()}");
-        }
+        $this->assertExistsFiles($response->json('id'), $files);
     }
 
     public function testUpdateWithFiles()
@@ -81,10 +107,38 @@ class VideoUploadControllerTest extends VideoBaseControllerTest
         );
 
         $response->assertStatus(200);
+        $this->assertExistsFiles($response->json('id'), $files);
+
+        $newFiles = [
+            'trailer_file' => UploadedFile::fake()->create('trailer_file.mp4'),
+            'video_file' => UploadedFile::fake()->create('video_file.mp4'),
+        ];
+
+        $response = $this->json(
+            'PUT',
+            $this->getRouteUpdate(),
+            $this->sendData + $cat_gen + $newFiles
+        );
+
+        $response->assertStatus(200);
         /** @var Video $video */
         $video = Video::find($response->json('id'));
+        Storage::assertMissing($video->relativeFilePath($files['trailer_file']->hashName()));
+        Storage::assertMissing($video->relativeFilePath($files['video_file']->hashName()));
+    }
+
+    protected function assertExistsFiles($id, array $files)
+    {
+        /** @var Video $video */
+        $video = Video::find($id);
+        $this->assertExistsFilesLoop($video, $files);
+    }
+
+    protected function assertExistsFilesLoop(Video $video, array $files)
+    {
+        /** @var UploadedFile $file */
         foreach ($files AS $file) {
-            Storage::assertExists("{$video->getUploadDir()}/{$file->hashName()}");
+            Storage::assertExists($video->relativeFilePath($file->hashName()));
         }
     }
 }

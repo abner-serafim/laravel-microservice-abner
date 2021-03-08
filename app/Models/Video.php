@@ -28,6 +28,11 @@ class Video extends Model
         self::RATING_18,
     ];
 
+    const FILE_MAX_SIZE_THUMB = 1024 * 5; // 5MB
+    const FILE_MAX_SIZE_BANNER = 1024 * 10; // 10MB
+    const FILE_MAX_SIZE_TRAILER = 1024 * 1024 * 1; // 1GB
+    const FILE_MAX_SIZE_VIDEO = 1024 * 1024 * 50; // 50GB
+
     protected $fillable = [
         'title',
         'description',
@@ -36,6 +41,8 @@ class Video extends Model
         'rating',
         'duration',
         'video_file',
+        'trailer_file',
+        'banner_file',
         'thumb_file',
     ];
     protected $dates = ['deleted_at'];
@@ -47,7 +54,7 @@ class Video extends Model
     ];
 
     public $incrementing = false;
-    public static array $fileFields = ['video_file', 'thumb_file'];
+    public static array $fileFields = ['video_file', 'trailer_file', 'banner_file', 'thumb_file'];
 
     public static function create(array $attributes = [])
     {
@@ -118,8 +125,28 @@ class Video extends Model
         return str_replace("-", "/", $created_at) . "/" . $this->id;
     }
 
-    public function getUploadDir()
+    public function relativeFilePath($value)
     {
-        return $this->uploadDir();
+        return "{$this->uploadDir()}/{$value}";
+    }
+
+    public function getThumbFileUrlAttribute()
+    {
+        return $this->thumb_file ? $this->getFileUrl($this->thumb_file) : null;
+    }
+
+    public function getBannerFileUrlAttribute()
+    {
+        return $this->banner_file ? $this->getFileUrl($this->banner_file) : null;
+    }
+
+    public function getTrailerFileUrlAttribute()
+    {
+        return $this->trailer_file ? $this->getFileUrl($this->trailer_file) : null;
+    }
+
+    public function getVideoFileUrlAttribute()
+    {
+        return $this->video_file ? $this->getFileUrl($this->video_file) : null;
     }
 }

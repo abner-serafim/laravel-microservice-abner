@@ -13,6 +13,7 @@ trait UploadFiles
 {
     public $oldFiles = [];
     protected abstract function uploadDir();
+    public abstract function relativeFilePath(string $filename);
     // public static array $fileFields = [];
 
     public static function bootUploadFiles()
@@ -62,7 +63,7 @@ trait UploadFiles
     public function deleteFile($file)
     {
         $filename = ($file instanceof UploadedFile) ? $file->hashName() : $file;
-        $link = $this->getUploadDir() . "/" . $filename;
+        $link = $this->relativeFilePath($filename);
         if (Storage::exists($link)) Storage::delete($link);
     }
 
@@ -80,5 +81,10 @@ trait UploadFiles
         }
 
         return $files;
+    }
+
+    protected function getFileUrl($filename)
+    {
+        return Storage::url($this->relativeFilePath($filename));
     }
 }

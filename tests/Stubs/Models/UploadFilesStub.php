@@ -35,8 +35,8 @@ class UploadFilesStub extends Model
         return "stub";
     }
 
-    public function getUploadDir()
+    public function relativeFilePath(string $filename)
     {
-        return $this->uploadDir();
+        return $this->uploadDir() . "/" . $filename;
     }
 }

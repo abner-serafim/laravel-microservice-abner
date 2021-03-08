@@ -18,7 +18,7 @@ class UploadFilesTest extends TestCase
 
     protected function tearDown(): void
     {
-        if ($this->isTestingProd()) $this->deleteAllFiles($this->uploadFilesStub->getUploadDir());
+        if ($this->isTestingProd()) $this->deleteAllFiles($this->uploadFilesStub->relativeFilePath(""));
         parent::tearDown();
     }
 
@@ -34,7 +34,7 @@ class UploadFilesTest extends TestCase
     {
         $file = UploadedFile::fake()->create('video.mp4');
         $this->uploadFilesStub->uploadFile($file);
-        Storage::assertExists($this->uploadFilesStub->getUploadDir() . "/" . $file->hashName());
+        Storage::assertExists($this->uploadFilesStub->relativeFilePath($file->hashName()));
     }
 
     public function testUploadFiles()
@@ -44,7 +44,7 @@ class UploadFilesTest extends TestCase
         $files = [$file1, $file2];
         $this->uploadFilesStub->uploadFiles($files);
         foreach ($files as $file) {
-            Storage::assertExists($this->uploadFilesStub->getUploadDir() . "/" . $file->hashName());
+            Storage::assertExists($this->uploadFilesStub->relativeFilePath($file->hashName()));
         }
     }
 
@@ -59,22 +59,22 @@ class UploadFilesTest extends TestCase
 
         $this->uploadFilesStub->oldFiles = [$file1->hashName()];
         $this->uploadFilesStub->deleteOldFiles();
-        Storage::assertMissing($this->uploadFilesStub->getUploadDir() . "/" . $file1->hashName());
-        Storage::assertExists($this->uploadFilesStub->getUploadDir() . "/" . $file2->hashName());
+        Storage::assertMissing($this->uploadFilesStub->relativeFilePath($file1->hashName()));
+        Storage::assertExists($this->uploadFilesStub->relativeFilePath($file2->hashName()));
     }
 
     public function testDeleteFile()
     {
         $file = UploadedFile::fake()->create('video.mp4');
         $this->uploadFilesStub->uploadFile($file);
-        $filename = $this->uploadFilesStub->getUploadDir() . "/" . $file->hashName();
+        $filename = $this->uploadFilesStub->relativeFilePath($file->hashName());
         Storage::assertExists($filename);
         $this->uploadFilesStub->deleteFile($file);
         Storage::assertMissing($filename);
 
         $file = UploadedFile::fake()->create('video.mp4');
         $this->uploadFilesStub->uploadFile($file);
-        $filename = $this->uploadFilesStub->getUploadDir() . "/" . $file->hashName();
+        $filename = $this->uploadFilesStub->relativeFilePath($file->hashName());
         Storage::assertExists($filename);
         $this->uploadFilesStub->deleteFile($file->hashName());
         Storage::assertMissing($filename);
@@ -87,14 +87,14 @@ class UploadFilesTest extends TestCase
         $files = [$file1, $file2];
         $this->uploadFilesStub->uploadFiles($files);
         foreach ($files as $file) {
-            $filename = $this->uploadFilesStub->getUploadDir() . "/" . $file->hashName();
+            $filename = $this->uploadFilesStub->relativeFilePath($file->hashName());
             Storage::assertExists($filename);
         }
 
         $this->uploadFilesStub->deleteFiles([$file1, $file2->hashName()]);
 
         foreach ($files as $file) {
-            $filename = $this->uploadFilesStub->getUploadDir() . "/" . $file->hashName();
+            $filename = $this->uploadFilesStub->relativeFilePath($file->hashName());
             Storage::assertMissing($filename);
         }
     }

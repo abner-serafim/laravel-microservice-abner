@@ -25,6 +25,8 @@ class VideoCrudTest extends VideoBaseTest
             'rating',
             'duration',
             'video_file',
+            'trailer_file',
+            'banner_file',
             'thumb_file',
             'created_at',
             'updated_at',
