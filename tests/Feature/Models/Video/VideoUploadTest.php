@@ -2,18 +2,13 @@
 
 namespace Tests\Feature\Models\Video;
 
-use App\Models\Category;
-use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Database\Events\TransactionCommitted;
-use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
-use Ramsey\Uuid\Uuid;
 use Tests\Exceptions\TestException;
-use Tests\TestCase;
 
 class VideoUploadTest extends VideoBaseTest
 {
@@ -26,8 +21,8 @@ class VideoUploadTest extends VideoBaseTest
                 'video_file' => UploadedFile::fake()->image('video.jpg'),
             ]
         );
-        Storage::assertExists("{$video->getUploadDir()}/{$video->thumb_file}");
-        Storage::assertExists("{$video->getUploadDir()}/{$video->video_file}");
+        Storage::assertExists($video->relativeFilePath($video->thumb_file));
+        Storage::assertExists($video->relativeFilePath($video->video_file));
     }
 
     public function testUpdateWithFiles()
@@ -41,17 +36,17 @@ class VideoUploadTest extends VideoBaseTest
                 'video_file' => $videoFile,
             ]
         );
-        Storage::assertExists("{$video->getUploadDir()}/{$video->thumb_file}");
-        Storage::assertExists("{$video->getUploadDir()}/{$video->video_file}");
+        Storage::assertExists($video->relativeFilePath($video->thumb_file));
+        Storage::assertExists($video->relativeFilePath($video->video_file));
 
         $videoFileNew = UploadedFile::fake()->image('video.jpg');
         $video->update($this->sendData + [
                 'video_file' => $videoFileNew,
             ]
         );
-        Storage::assertExists("{$video->getUploadDir()}/{$thumbFile->hashName()}");
-        Storage::assertMissing("{$video->getUploadDir()}/{$videoFile->hashName()}");
-        Storage::assertExists("{$video->getUploadDir()}/{$videoFileNew->hashName()}");
+        Storage::assertExists($video->relativeFilePath($thumbFile->hashName()));
+        Storage::assertMissing($video->relativeFilePath($videoFile->hashName()));
+        Storage::assertExists($video->relativeFilePath($videoFileNew->hashName()));
     }
 
     public function testCreateIfRollbackFiles()
@@ -99,5 +94,37 @@ class VideoUploadTest extends VideoBaseTest
         }
 
         self::assertTrue($hasError);
+    }
+
+    public function testFileUrlWithLocalDriver()
+    {
+        $fileFields = [];
+        foreach (Video::$fileFields as $field) {
+            $fileFields[$field] = "$field.test";
+        }
+        /** @var Video $video */
+        $video = Video::factory()->create($fileFields);
+        $localDriver = config('filesystems.default');
+        $baseUrl = config('filesystems.disks.' . $localDriver)['url'];
+        foreach ($fileFields as $field => $value) {
+            $fileUrl = $video->{"{$field}_url"};
+            self::assertEquals("{$baseUrl}/" . $video->relativeFilePath($value), $fileUrl);
+        }
+    }
+
+    public function testFileUrlWithGcsDriver()
+    {
+        $fileFields = [];
+        foreach (Video::$fileFields as $field) {
+            $fileFields[$field] = "$field.test";
+        }
+        /** @var Video $video */
+        $video = Video::factory()->create($fileFields);
+        $baseUrl = config('filesystems.disks.gcs.storage_api_uri');
+        Config::set('filesystems.default', 'gcs');
+        foreach ($fileFields as $field => $value) {
+            $fileUrl = $video->{"{$field}_url"};
+            self::assertEquals("{$baseUrl}/" . $video->relativeFilePath($value), $fileUrl);
+        }
     }
 }
