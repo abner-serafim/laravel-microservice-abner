@@ -3,6 +3,7 @@
 namespace Tests\Stubs\Controllers\Api;
 
 use App\Http\Controllers\Api\BasicCrudController;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Tests\Stubs\Models\CategoryStub;
@@ -33,5 +34,15 @@ class CategoryControllerStub extends BasicCrudController
     protected function handleRelations($obj, Request $request): void
     {
 
+    }
+
+    protected function getResourceCollection(): string
+    {
+        return $this->getResource();
+    }
+
+    protected function getResource(): string
+    {
+        return CategoryResource::class;
     }
 }

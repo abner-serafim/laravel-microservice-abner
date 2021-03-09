@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api\Video;
 
 use App\Http\Controllers\Api\VideoController;
+use App\Http\Resources\VideoResource;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\Exceptions\TestException;
+use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 use Tests\TestCase;
@@ -21,6 +23,22 @@ abstract class VideoBaseControllerTest extends TestCase
 
     protected $video;
     protected $sendData;
+    protected $serializedFields = [
+        'id',
+        'title',
+        'description',
+        'year_launched',
+        'opened',
+        'rating',
+        'duration',
+        'video_file',
+        'trailer_file',
+        'banner_file',
+        'thumb_file',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
 
     protected function setUp(): void
     {
@@ -61,6 +79,16 @@ abstract class VideoBaseControllerTest extends TestCase
         ];
     }
 
+    protected function getRouteIndex()
+    {
+        return route('api.videos.index');
+    }
+
+    protected function getRouteShow()
+    {
+        return route('api.videos.show', $this->video->id);
+    }
+
     protected function getRouteStore()
     {
         return route('api.videos.store');
@@ -74,5 +102,25 @@ abstract class VideoBaseControllerTest extends TestCase
     protected function getModel()
     {
         return Video::class;
+    }
+
+    protected function getModelItem()
+    {
+        return $this->video;
+    }
+
+    protected function getSerializedFields()
+    {
+        return $this->serializedFields;
+    }
+
+    protected function getResourceCollection(): string
+    {
+        return $this->getResource();
+    }
+
+    protected function getResource(): string
+    {
+        return VideoResource::class;
     }
 }

@@ -3,7 +3,9 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\BasicCrudController;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Validation\ValidationException;
 use Tests\Stubs\Controllers\Api\CategoryControllerStub;
 use Tests\Stubs\Models\CategoryStub;
@@ -31,10 +33,10 @@ class BasicCrudControllerTest extends TestCase
 
     public function testIndex()
     {
-        /** @var CategoryStub $category */
-        $category = CategoryStub::create($this->example);
-        $result = $this->controller->index()->toArray();
-        self::assertEquals([$category->toArray()], $result);
+        CategoryStub::create($this->example);
+        $result = $this->controller->index()->toJson();
+        $resultTest = CategoryResource::collection(CategoryStub::paginate(15))->toJson();
+        self::assertEquals($resultTest, $result);
     }
 
     public function testInvalidationDataInStore()
@@ -57,10 +59,11 @@ class BasicCrudControllerTest extends TestCase
             ->once()
             ->andReturn($this->example);
 
+        /** @var CategoryResource $obj */
         $obj = $this->controller->store($request);
         self::assertEquals(
-            CategoryStub::find($obj->id)->toArray(),
-            $obj->toArray()
+            (new CategoryResource(CategoryStub::find($obj->id)))->toJson(),
+            $obj->toJson()
         );
     }
 
@@ -83,7 +86,10 @@ class BasicCrudControllerTest extends TestCase
         $category = CategoryStub::create($this->example);
 
         $result = $this->controller->show($category->id);
-        self::assertEquals($result->toArray(), CategoryStub::find($category->id)->toArray());
+        self::assertEquals(
+            (new CategoryResource(CategoryStub::find($category->id)))->toJson(),
+            $result->toJson()
+        );
     }
 
     public function testUpdate()
@@ -98,7 +104,10 @@ class BasicCrudControllerTest extends TestCase
             ->andReturn(['name' => 'test_name_changed', 'description' => 'test_description_changed']);
 
         $result = $this->controller->update($request, $category->id);
-        self::assertEquals($result->toArray(), CategoryStub::find($category->id)->toArray());
+        self::assertEquals(
+            (new CategoryResource(CategoryStub::find($category->id)))->toJson(),
+            $result->toJson()
+        );
     }
 
     public function testDestroy()
