@@ -11,23 +11,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\Exceptions\TestException;
+use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 use Tests\TestCase;
 
 class VideoCrudControllerTest extends VideoBaseControllerTest
 {
-    public function testIndex()
-    {
-        $response = $this->get(route('api.videos.index'));
-        $response->assertStatus(200)->assertJson([$this->video->toArray()]);
-    }
-
-    public function testShow()
-    {
-        $response = $this->get(route('api.videos.show', $this->video->id));
-        $response->assertStatus(200)->assertJson($this->video->toArray());
-    }
+    use TestResources;
 
     public function testInvalidationRequired()
     {
@@ -174,20 +165,16 @@ class VideoCrudControllerTest extends VideoBaseControllerTest
 
         foreach ($datas AS $data) {
             $responseStore = $this->assertStore($data['send_data'], $data['test_data']);
-            $this->assertHasCategory($cat_gen['categories_id'][0], $responseStore->json('id'));
-            $this->assertHasGenre($cat_gen['genres_id'][0], $responseStore->json('id'));
+            $this->assertHasCategory($cat_gen['categories_id'][0], $responseStore->json('data.id'));
+            $this->assertHasGenre($cat_gen['genres_id'][0], $responseStore->json('data.id'));
             $responseUpdate = $this->assertUpdate($data['send_data'], $data['test_data']);
-            $this->assertHasCategory($cat_gen['categories_id'][0], $responseStore->json('id'));
-            $this->assertHasGenre($cat_gen['genres_id'][0], $responseStore->json('id'));
+            $this->assertHasCategory($cat_gen['categories_id'][0], $responseStore->json('data.id'));
+            $this->assertHasGenre($cat_gen['genres_id'][0], $responseStore->json('data.id'));
         }
 
-        if ($responseStore) $responseStore->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+        if ($responseStore) $this->assertResourceValid($responseStore);
 
-        if ($responseUpdate) $responseUpdate->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+        if ($responseUpdate) $this->assertResourceValid($responseUpdate);
     }
 
     /*public function testRollbackStore()

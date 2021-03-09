@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
@@ -31,5 +32,15 @@ class CategoryController extends BasicCrudController
     protected function handleRelations($obj, Request $request): void
     {
 
+    }
+
+    protected function getResourceCollection(): string
+    {
+        return $this->getResource();
+    }
+
+    protected function getResource(): string
+    {
+        return CategoryResource::class;
     }
 }
