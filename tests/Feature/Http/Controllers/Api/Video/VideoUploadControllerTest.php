@@ -109,6 +109,8 @@ class VideoUploadControllerTest extends VideoBaseControllerTest
         $response->assertStatus(200);
         $this->assertExistsFiles($response->json('data.id'), $files);
 
+        $this->assertIfFilesUrlExists($this->video, $response);
+
         $newFiles = [
             'trailer_file' => UploadedFile::fake()->create('trailer_file.mp4'),
             'video_file' => UploadedFile::fake()->create('video_file.mp4'),
@@ -125,6 +127,8 @@ class VideoUploadControllerTest extends VideoBaseControllerTest
         $video = Video::find($response->json('data.id'));
         Storage::assertMissing($video->relativeFilePath($files['trailer_file']->hashName()));
         Storage::assertMissing($video->relativeFilePath($files['video_file']->hashName()));
+
+        $this->assertIfFilesUrlExists($this->video, $response);
     }
 
     protected function assertExistsFiles($id, array $files)

@@ -127,6 +127,7 @@ class Video extends Model
 
     public function relativeFilePath($value)
     {
+        if (!$value) return null;
         return "{$this->uploadDir()}/{$value}";
     }
 
