@@ -4,6 +4,7 @@
 namespace Tests\Traits;
 
 
+use App\Models\Video;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Testing\TestResponse;
 
@@ -24,6 +25,7 @@ trait TestResources
         $response = $this->get($this->getRouteIndex());
         $response->assertStatus(200);
         $this->assertResourceCollectionValid($response);
+        return $response;
     }
 
     public function testShow()
@@ -31,6 +33,7 @@ trait TestResources
         $response = $this->get($this->getRouteShow());
         $response->assertStatus(200);
         $this->assertResourceValid($response);
+        return $response;
     }
 
     protected function assertResource(TestResponse $response, JsonResource $resource)

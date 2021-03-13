@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\Exceptions\TestException;
 use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
@@ -38,6 +39,42 @@ abstract class VideoBaseControllerTest extends TestCase
         'created_at',
         'updated_at',
         'deleted_at',
+        'thumb_file_url',
+        'banner_file_url',
+        'trailer_file_url',
+        'video_file_url',
+        'categories' => [
+            '*' => [
+                'id',
+                'name',
+                'description',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at',
+            ]
+        ],
+        'genres' => [
+            '*' => [
+                'id',
+                'name',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at',
+                'categories' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'description',
+                        'is_active',
+                        'created_at',
+                        'updated_at',
+                        'deleted_at',
+                    ]
+                ]
+            ]
+        ]
     ];
 
     protected function setUp(): void
@@ -67,6 +104,24 @@ abstract class VideoBaseControllerTest extends TestCase
             'genre_id' => $genreId,
             'video_id' => $videoId,
         ]);
+    }
+
+    protected function assertIfFilesUrlExists(Video $video, TestResponse $response)
+    {
+        $video->refresh();
+        $fileFields = Video::$fileFields;
+        $data = $response->json('data');
+        $data = array_key_exists(0, $data) ? $data[0] : $data;
+        foreach ($fileFields as $field) {
+            $file = $video->{$field};
+            $fileLink = $video->relativeFilePath($file);
+            $fileUrl = $fileLink ? Storage::url($fileLink) : $fileLink;
+
+            self::assertEquals(
+                $fileUrl,
+                $data[$field . '_url']
+            );
+        }
     }
 
     protected function getFiles()
