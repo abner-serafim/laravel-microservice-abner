@@ -10,6 +10,9 @@ RUN apk add --no-cache shadow \
                         freetype-dev \
                         libjpeg-turbo-dev \
                         libpng-dev
+
+RUN touch /root/.bashrc | echo "PS1='\w\$ '" >> /root/.bashrc
+
 RUN docker-php-ext-install pdo pdo_mysql
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 RUN docker-php-ext-install -j$(nproc) gd
@@ -26,11 +29,11 @@ RUN rm -rf /var/www/html
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN usermod -u 1000 www-data
+#RUN usermod -u 1000 www-data
 
 RUN ln -s public html
 
-USER www-data
+#USER www-data
 
 EXPOSE 9000
 

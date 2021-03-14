@@ -1,0 +1,37 @@
+0 info it worked if it ends with ok
+1 verbose cli [
+1 verbose cli   '/usr/bin/node',
+1 verbose cli   '/usr/bin/npm',
+1 verbose cli   'config',
+1 verbose cli   'set',
+1 verbose cli   'cache',
+1 verbose cli   '/var/www/.npm-cache',
+1 verbose cli   '--global'
+1 verbose cli ]
+2 info using npm@6.14.11
+3 info using node@v14.16.0
+4 info config set "cache" "/var/www/.npm-cache"
+5 verbose stack Error: EACCES: permission denied, mkdir '/usr/etc'
+6 verbose cwd /var/www
+7 verbose Linux 5.8.0-44-generic
+8 verbose argv "/usr/bin/node" "/usr/bin/npm" "config" "set" "cache" "/var/www/.npm-cache" "--global"
+9 verbose node v14.16.0
+10 verbose npm  v6.14.11
+11 error code EACCES
+12 error syscall mkdir
+13 error path /usr/etc
+14 error errno -13
+15 error Error: EACCES: permission denied, mkdir '/usr/etc'
+15 error  [Error: EACCES: permission denied, mkdir '/usr/etc'] {
+15 error   errno: -13,
+15 error   code: 'EACCES',
+15 error   syscall: 'mkdir',
+15 error   path: '/usr/etc'
+15 error }
+16 error The operation was rejected by your operating system.
+16 error It is likely you do not have the permissions to access this file as the current user
+16 error
+16 error If you believe this might be a permissions issue, please double-check the
+16 error permissions of the file and its containing directories, or try running
+16 error the command again as root/Administrator.
+17 verbose exit [ -13, true ]
