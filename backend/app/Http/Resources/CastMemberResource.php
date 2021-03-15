@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\CastMember;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CastMemberResource extends JsonResource
@@ -14,6 +15,8 @@ class CastMemberResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return parent::toArray($request) + [
+            'type_name' => CastMember::ALL_TYPE_NAME[$this->type]
+        ];
     }
 }

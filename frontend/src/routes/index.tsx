@@ -1,6 +1,8 @@
 import {RouteProps} from 'react-router-dom';
 import Dashboard from "../pages/Dashboard";
-import CategoryList from "../pages/category/List";
+import CastMemberPageList from "../pages/cast-member/PageList";
+import CategoryPageList from "../pages/category/PageList";
+import GenrePageList from "../pages/genre/PageList";
 
 export interface MyRouteProps extends RouteProps {
     name: string,
@@ -16,17 +18,66 @@ const routes: MyRouteProps[] = [
         exact: true
     },
     {
+        name: 'cast_members.list',
+        label: 'Listar membros de elencos',
+        path: '/cast_members',
+        component: CastMemberPageList,
+        exact: true
+    },
+    {
+        name: 'cast_members.create',
+        label: 'Criar membro de elencos',
+        path: '/cast_members/create',
+        component: CastMemberPageList,
+        exact: true
+    },
+    {
+        name: 'cast_members.edit',
+        label: 'Editar membro de elencos',
+        path: '/cast_members/:id/edit',
+        component: CastMemberPageList,
+        exact: true
+    },
+    {
         name: 'categories.list',
-        label: 'Categorias',
-        path: '/categorias',
-        component: CategoryList,
+        label: 'Listar Categorias',
+        path: '/categories',
+        component: CategoryPageList,
+        exact: true
+    },
+    {
+        name: 'categories.create',
+        label: 'Criar Categoria',
+        path: '/categories/create',
+        component: CategoryPageList,
         exact: true
     },
     {
         name: 'categories.edit',
-        label: 'Categorias Edit',
-        path: '/categorias/:id/edit',
-        component: CategoryList,
+        label: 'Editar Categoria',
+        path: '/categories/:id/edit',
+        component: CategoryPageList,
+        exact: true
+    },
+    {
+        name: 'genres.list',
+        label: 'Listar gêneros',
+        path: '/genres',
+        component: GenrePageList,
+        exact: true
+    },
+    {
+        name: 'genres.create',
+        label: 'Criar gênero',
+        path: '/genres/create',
+        component: GenrePageList,
+        exact: true
+    },
+    {
+        name: 'genres.edit',
+        label: 'Editar gênero',
+        path: '/genres/:id/edit',
+        component: GenrePageList,
         exact: true
     },
 ];

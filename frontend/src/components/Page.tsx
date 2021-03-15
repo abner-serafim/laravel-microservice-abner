@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import {Container, makeStyles, Typography} from "@material-ui/core";
+import {Box, Container, makeStyles, Typography} from "@material-ui/core";
 import {PropsWithChildren} from "react";
 
 const useStyles = makeStyles({
@@ -20,7 +20,9 @@ export const Page:React.FC<Props> = (props: PropsWithChildren<Props>) => {
             <Typography className={classes.title} component="h1" variant="h5">
                 {props.title}
             </Typography>
-            {props.children}
+            <Box paddingTop={1}>
+                {props.children}
+            </Box>
         </Container>
     );
 };

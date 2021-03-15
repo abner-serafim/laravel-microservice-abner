@@ -1,5 +1,7 @@
 <?php
 
+$origins = env('CORS_ORIGINS', '');
+
 return [
 
     /*
@@ -19,7 +21,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => explode(',', $origins),//['http://localhost:3000', 'http://192.168.244.128:3000'],
 
     'allowed_origins_patterns' => [],
 
