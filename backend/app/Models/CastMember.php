@@ -13,6 +13,10 @@ class CastMember extends Model
     const TYPE_DIRECTOR = 1;
     const TYPE_ACTOR = 2;
     const ALL_TYPE = [self::TYPE_DIRECTOR, self::TYPE_ACTOR];
+    const ALL_TYPE_NAME = [
+        self::TYPE_DIRECTOR => 'Diretor',
+        self::TYPE_ACTOR => 'Ator'
+    ];
 
     protected $fillable = ['name', 'type'];
     protected $dates = ['deleted_at'];
