@@ -2,9 +2,9 @@
 import * as React from 'react';
 import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
 import {useEffect, useState} from "react";
-import {httpvideo} from "../../services/http";
 import {Chip} from "@material-ui/core";
 import {formatIsoToDTH} from "../../utils/date";
+import categoryHttp from "../../services/http/category-http";
 
 const columnDefinitions: MUIDataTableColumn[] = [
     {
@@ -35,17 +35,22 @@ const columnDefinitions: MUIDataTableColumn[] = [
     },
 ];
 
+interface Category {
+    id: string;
+    name: string;
+}
+
 type Props = {
 
 };
 const Table = (props: Props) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<Category[]>([]);
 
     useEffect(() => {
-        httpvideo.get('categories').then(
-            res => setData(res.data.data)
-        );
+        categoryHttp 
+            .list<{data: Category[]}>()
+            .then(({data}) => setData(data.data));
     }, []);
 
     return (
