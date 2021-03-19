@@ -16,9 +16,10 @@ const PageList = (props: Props) => {
 
     return (
         <Page title="Listar gêneros">
-            <Box dir={'rtl'}>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title={"Adicionar gênero"}
+                    color={"secondary"}
                     size="small"
                     component={Link}
                     to={route.path as string}

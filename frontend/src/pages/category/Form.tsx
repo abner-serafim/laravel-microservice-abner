@@ -18,8 +18,8 @@ export const Form = (props: Props) => {
     const classes = useStyles();
 
     const buttonProps: ButtonProps = {
-        variant: "outlined",
-        color: "primary",
+        variant: "contained",
+        color: "secondary",
         className: classes.submit
     };
 
