@@ -6,7 +6,7 @@ import theme from "../theme";
 const localTheme = createMuiTheme({
     palette: {
         primary: theme.palette.success,
-        secondary: theme.palette.secondary,
+        secondary: theme.palette.error,
     }
 });
 

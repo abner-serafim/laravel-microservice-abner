@@ -16,6 +16,7 @@
     "axios": "^0.21.1",
     "date-fns": "^2.19.0",
     "mui-datatables": "^3.7.6",
+    "notistack": "^1.0.5",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-hook-form": "^6.15.4",

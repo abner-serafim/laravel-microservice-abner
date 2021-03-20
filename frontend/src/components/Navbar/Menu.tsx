@@ -7,8 +7,8 @@ import {Link} from "react-router-dom";
 
 const listRoutes = {
     'dashboard': 'Dashboard',
-    'cast_members.list': 'Categorias',
-    'categories.list': 'Membros de elenco',
+    'categories.list': 'Categorias',
+    'cast_members.list': 'Membros de elenco',
     'genres.list': 'Gêneros',
 };
 const menuRoutes = routes.filter(route => Object.keys(listRoutes).includes(route.name));
@@ -47,6 +47,7 @@ export const Menu = () => {
                     Object.keys(listRoutes).map(
                         (routeName, key) => {
                             const route = menuRoutes.find(route => route.name === routeName) as MyRouteProps;
+                            console.log(route)
                             return (
                                 <MenuItem key={key} component={Link} to={route.path as string}>
                                     {listRoutes[routeName]}

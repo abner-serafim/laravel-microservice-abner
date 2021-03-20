@@ -20,6 +20,12 @@ interface LocaleObject {
 }
 
 const ptBR: LocaleObject = {
+    array: {
+        // eslint-disable-next-line
+        max: '${path} não pode ter mais que ${max} itens',
+        // eslint-disable-next-line
+        min: '${path} não pode ter menos que ${min} itens'
+    },
     mixed: {
         // eslint-disable-next-line
         required: '${path} é obrigatório'
