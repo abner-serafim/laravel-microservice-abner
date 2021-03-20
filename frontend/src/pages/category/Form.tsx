@@ -1,9 +1,13 @@
 // @flow
 import * as React from 'react';
-import {Box, Button, ButtonProps, Checkbox, TextField} from "@material-ui/core";
+import {Box, Button, ButtonProps, Checkbox, FormControlLabel, TextField} from "@material-ui/core";
 import {makeStyles, Theme} from "@material-ui/core/styles";
 import {useForm} from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import categoryHttp from "../../services/http/category-http";
+import yup from "../../utils/vendor/yup";
+import {useEffect, useState} from "react";
+import {useParams} from "react-router";
 
 const useStyles = makeStyles((theme: Theme) => ({
     submit: {
@@ -11,11 +15,23 @@ const useStyles = makeStyles((theme: Theme) => ({
     }
 }));
 
+type Inputs = {
+    name: string;
+    is_active: boolean;
+}
+
+const schema = yup.object().shape({
+    name: yup.string().required().min(3).max(255),
+    is_active: yup.boolean(),
+});
+
 type Props = {
 
 };
 export const Form = (props: Props) => {
     const classes = useStyles();
+
+    const {id} = useParams<{id: string}>();
 
     const buttonProps: ButtonProps = {
         variant: "contained",
@@ -23,16 +39,42 @@ export const Form = (props: Props) => {
         className: classes.submit
     };
 
-    const {register, handleSubmit, getValues} = useForm({
+    const {
+        register,
+        watch,
+        errors,
+        handleSubmit,
+        getValues,
+        setValue,
+        reset
+    } = useForm<Inputs>({
+        resolver: yupResolver(schema),
         defaultValues: {
-            is_active: true
+            name: "",
+            is_active: !id
         }
     });
 
-    function onSubmit(formData, event) {
+    const [category, setCategory] = useState<{id: string} | null>(null);
+
+    useEffect(() => {
+        if (!id) return;
+
         categoryHttp
-            .create(formData)
-            .then((responde) => console.log(responde));
+            .get(id)
+            .then(({data}) => {
+                setCategory(data.data);
+                reset(data.data);
+            });
+    }, [id, reset]);
+
+    function onSubmit(formData, event) {
+        const http = !category
+            ? categoryHttp.create(formData)
+            : categoryHttp.update(category.id, formData)
+        ;
+
+        http.then((responde) => console.log(responde));
 
         if (event) {
 
@@ -44,11 +86,14 @@ export const Form = (props: Props) => {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <TextField
+                error={errors.name !== undefined}
+                helperText={errors.name && errors.name.message}
                 inputRef={register}
                 name="name"
                 label="Nome"
                 fullWidth
                 variant={"outlined"}
+                InputLabelProps={{shrink: true}}
             />
             <TextField
                 inputRef={register}
@@ -59,14 +104,19 @@ export const Form = (props: Props) => {
                 rows={4}
                 variant={"outlined"}
                 margin={"normal"}
+                InputLabelProps={{shrink: true}}
             />
             <Box>
-                <Checkbox
-                    inputRef={register}
-                    name="is_active"
-                    defaultChecked
-                />
-                Ativo?
+                <FormControlLabel control={
+                    <Checkbox
+                        inputRef={register}
+                        name="is_active"
+                        checked={watch('is_active')}
+                        onChange={(event, value) => {
+                            setValue('is_active', value)
+                        }}
+                    />
+                } label={"Ativo?"} />
             </Box>
             <Box dir={"rtl"}>
                 <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
