@@ -1,15 +1,11 @@
 // @flow
 import * as React from 'react';
 import {
-    Box,
-    Button,
-    ButtonProps,
     FormControl,
     FormControlLabel, FormHelperText, FormLabel, Radio,
     RadioGroup,
     TextField
 } from "@material-ui/core";
-import {makeStyles, Theme} from "@material-ui/core/styles";
 import {useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import castMemberHttp from "../../services/http/cast-member-http";
@@ -17,17 +13,9 @@ import yup from "../../utils/vendor/yup";
 import {useHistory, useParams} from "react-router";
 import {yupResolver} from "@hookform/resolvers/yup";
 import {useSnackbar} from "notistack";
-
-const useStyles = makeStyles((theme: Theme) => ({
-    submit: {
-        margin: theme.spacing(1)
-    }
-}));
-
-type Inputs = {
-    name: string;
-    type: number;
-}
+import {CastMember, Response} from "../../services/models";
+import {SubmitActions} from "../../components/SubmitActions";
+import {DefaultForm} from "../../components/DefaultForm";
 
 const schema = yup.object().shape({
     name: yup.string().label("Nome").required().min(3).max(255),
@@ -44,8 +32,9 @@ export const Form = () => {
         handleSubmit,
         getValues,
         setValue,
-        reset
-    } = useForm<Inputs>({
+        reset,
+        trigger
+    } = useForm<CastMember>({
         resolver: yupResolver(schema),
         defaultValues: {
             name: "",
@@ -53,26 +42,21 @@ export const Form = () => {
         }
     });
 
-    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
-    const [castMember, setCastMember] = useState<{id: string} | null>(null);
+    const [castMember, setCastMember] = useState<CastMember | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        color: "secondary",
-        className: classes.submit,
-        disabled: loading
-    };
 
     useEffect(() => {
         if (!id) return;
 
-        async function getCastMember() {
+        let isCancelled = false;
+
+        (async () => {
             setLoading(true);
             try {
-                const {data: {data}} = await castMemberHttp.get(id);
+                const {data: {data}} = await castMemberHttp.get<Response<CastMember>>(id);
+                if (isCancelled) return;
                 setCastMember(data);
                 reset(data);
             } catch (e) {
@@ -80,9 +64,11 @@ export const Form = () => {
             } finally {
                 setLoading(false);
             }
-        }
+        })();
 
-        getCastMember();
+        return () => {
+            isCancelled = true;
+        }
     }, [id, reset]);
 
     useEffect(() => {
@@ -97,8 +83,8 @@ export const Form = () => {
         setLoading(true);
         try {
             const http = !castMember
-                ? castMemberHttp.create(formData)
-                : castMemberHttp.update(castMember.id, formData)
+                ? castMemberHttp.create<Response<CastMember>>(formData)
+                : castMemberHttp.update<Response<CastMember>>(castMember.id, formData)
             ;
 
             const {data: {data}} = await http;
@@ -127,7 +113,7 @@ export const Form = () => {
     console.log("errors", errors)
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 inputRef={register}
                 name="name"
@@ -159,10 +145,13 @@ export const Form = () => {
                     errors.type && <FormHelperText id="type-helper-text">{errors.type.message}</FormHelperText>
                 }
             </FormControl>
-            <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>
-        </form>
+            <SubmitActions
+                atualizar={id !== null && id !== undefined}
+                loading={loading}
+                onClick={async () => {
+                    if (await trigger()) await onSubmit(getValues(), null)
+                }}
+            />
+        </DefaultForm>
     );
 };

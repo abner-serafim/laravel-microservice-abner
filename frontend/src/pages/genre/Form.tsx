@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
-import {Box, Button, ButtonProps, Checkbox, FormControlLabel, MenuItem, TextField} from "@material-ui/core";
-import {makeStyles, Theme} from "@material-ui/core/styles";
+import {Box, Checkbox, FormControlLabel, MenuItem, TextField} from "@material-ui/core";
 import {useForm} from "react-hook-form";
 import genreHttp from "../../services/http/genre-http";
 import {useEffect, useState} from "react";
@@ -10,18 +9,10 @@ import yup from "../../utils/vendor/yup";
 import {useHistory, useParams} from "react-router";
 import {yupResolver} from "@hookform/resolvers/yup";
 import {useSnackbar} from "notistack";
-
-const useStyles = makeStyles((theme: Theme) => ({
-    submit: {
-        margin: theme.spacing(1)
-    }
-}));
-
-type Inputs = {
-    name: string;
-    categories_id: any;
-    is_active: boolean;
-}
+import {Category, Genre, ListResponse, Response} from "../../services/models";
+import {AxiosResponse} from "axios";
+import {SubmitActions} from "../../components/SubmitActions";
+import {DefaultForm} from "../../components/DefaultForm";
 
 const schema = yup.object().shape({
     name: yup.string().label("Nome").required().min(3).max(255),
@@ -42,8 +33,9 @@ export const Form = (props: Props) => {
         handleSubmit,
         getValues,
         setValue,
-        reset
-    } = useForm<Inputs>({
+        reset,
+        trigger
+    } = useForm<Genre>({
         resolver: yupResolver(schema),
         defaultValues: {
             name: "",
@@ -52,41 +44,43 @@ export const Form = (props: Props) => {
         }
     });
 
-    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
-    const [genre, setGenre] = useState<{id: string} | null>(null);
+    const [genre, setGenre] = useState<Genre | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        color: "secondary",
-        className: classes.submit,
-        disabled: loading
-    };
-
-    const [categories, setCategories] = useState<any[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
 
     useEffect(() => {
         register({name: "categories_id"});
     }, [register]);
 
     useEffect(() => {
-        async function getGenre() {
+        let isCancelled = false;
+
+        (async () => {
             setLoading(true);
             const promises = [categoryHttp.list()];
+
             if (id) {
                 promises.push(genreHttp.get(id));
             }
             try {
-                const [catRes, genRes] = await Promise.all(promises);
+                const res = await Promise.all(promises);
+
+                let catRes: AxiosResponse<ListResponse<Category>> = res[0];
+                let genRes: AxiosResponse<Response<Genre>> = res[1];
+
+                 if (isCancelled) return;
+
                 setCategories(catRes.data.data)
 
                 if (id) {
+                    let categories = genRes.data.data.categories;
                     setGenre(genRes.data.data);
                     reset({
                         ...genRes.data.data,
-                        categories_id: genRes.data.data.categories.map(category => category.id)
+                        categories_id: categories ? categories.map(category => category.id) : []
                     });
                 }
             } catch (e) {
@@ -98,17 +92,19 @@ export const Form = (props: Props) => {
             } finally {
                 setLoading(false);
             }
-        }
+        })();
 
-        getGenre();
+        return () => {
+            isCancelled = true;
+        }
     }, [id, reset, snackbar]);
 
     async function onSubmit(formData, event) {
         setLoading(true);
         try {
             const http = !genre
-                ? genreHttp.create(formData)
-                : genreHttp.update(genre.id, formData)
+                ? genreHttp.create<Response<Genre>>(formData)
+                : genreHttp.update<Response<Genre>>(genre.id, formData)
             ;
 
             const {data: {data}} = await http;
@@ -137,7 +133,7 @@ export const Form = (props: Props) => {
     console.log(errors);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 inputRef={register}
                 name="name"
@@ -192,10 +188,13 @@ export const Form = (props: Props) => {
                     />
                 } label={"Ativo?"} />
             </Box>
-            <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>
-        </form>
+            <SubmitActions
+                atualizar={id !== null && id !== undefined}
+                loading={loading}
+                onClick={async () => {
+                    if (await trigger()) await onSubmit(getValues(), null)
+                }}
+            />
+        </DefaultForm>
     );
 };

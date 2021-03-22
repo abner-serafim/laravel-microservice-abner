@@ -1,22 +1,34 @@
 // @flow
 import * as React from 'react';
-import MUIDataTable, {MUIDataTableColumn} from "mui-datatables";
 import {useEffect, useState} from "react";
-import {httpvideo} from "../../services/http";
 import {formatIsoToDTH} from "../../utils/date";
 import {BadgeNo, BadgeYes} from "../../components/Badge";
+import genreHttp from "../../services/http/genre-http";
+import {CastMember, Category, Genre, ListResponse} from "../../services/models";
+import {DefaultTable, TableColumn} from "../../components/Table";
+import castMemberHttp from "../../services/http/cast-member-http";
 
-const columnDefinitions: MUIDataTableColumn[] = [
+const columnDefinitions: TableColumn[] = [
+    {
+        name: 'id',
+        label: 'ID',
+        width: '25%',
+        options: {
+            sort: false
+        },
+    },
     {
         name: 'name',
         label: 'Nome',
+        width: '25%',
     },
     {
         name: 'categories',
         label: 'Categorias',
+        width: '25%',
         options: {
             customBodyRender(values, tableMeta, updateValue) {
-                return values.map((value: any) => value.name).join(', ');
+                return values.map((value: Category) => value.name).join(', ');
             }
         }
     },
@@ -38,6 +50,11 @@ const columnDefinitions: MUIDataTableColumn[] = [
             }
         }
     },
+    {
+        name: 'actions',
+        label: 'Ações',
+        width: '13%',
+    },
 ];
 
 type Props = {
@@ -45,16 +62,34 @@ type Props = {
 };
 const Table = (props: Props) => {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<Genre[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        httpvideo.get('genres').then(
-            res => setData(res.data.data)
-        );
+        let isCancelled = false;
+
+        (async () => {
+            setLoading(true);
+
+            try {
+                const {data} = await genreHttp.list<ListResponse<Genre>>();
+                if (isCancelled) return;
+                setData(data.data);
+            } catch (e) {
+
+            } finally {
+                setLoading(false);
+            }
+        })();
+
+        return () => {
+            isCancelled = true;
+        }
     }, []);
 
     return (
-        <MUIDataTable
+        <DefaultTable
+            isLoading={loading}
             columns={columnDefinitions}
             data={data}
             title={""}
