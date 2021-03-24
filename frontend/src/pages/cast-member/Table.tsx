@@ -4,7 +4,11 @@ import {useEffect, useState} from "react";
 import {formatIsoToDTH} from "../../utils/date";
 import castMemberHttp from "../../services/http/cast-member-http";
 import {CastMember, ListResponse} from "../../services/models";
-import {DefaultTable, TableColumn} from "../../components/Table";
+import {DefaultTable, makeActionStyles, TableColumn} from "../../components/Table";
+import {IconButton} from "@material-ui/core";
+import {Link} from "react-router-dom";
+import EditIcon from "@material-ui/icons/Edit";
+import {MuiThemeProvider} from "@material-ui/core/styles";
 
 const columnDefinitions: TableColumn[] = [
     {
@@ -38,6 +42,20 @@ const columnDefinitions: TableColumn[] = [
         name: 'actions',
         label: 'Ações',
         width: '13%',
+        options: {
+            sort: false,
+            customBodyRender(value, tableMeta, updateValue): JSX.Element {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/cast_members/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon />
+                    </IconButton>
+                );
+            }
+        }
     },
 ];
 
@@ -72,12 +90,14 @@ const Table = (props: Props) => {
     }, []);
 
     return (
-        <DefaultTable
-            isLoading={loading}
-            columns={columnDefinitions}
-            data={data}
-            title={""}
-        />
+        <MuiThemeProvider theme={makeActionStyles(columnDefinitions.length-1)}>
+            <DefaultTable
+                isLoading={loading}
+                columns={columnDefinitions}
+                data={data}
+                title={""}
+            />
+        </MuiThemeProvider>
     );
 };
 

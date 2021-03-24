@@ -80,6 +80,7 @@ export const DefaultTable: React.FC<TableProps> = (props) => {
     }
 
     const theme = cloneDeep<Theme>(useTheme());
+    // const matches = useMediaQuery(theme.breakpoints.down('sm'));
     const newProps = merge(
         {options: cloneDeep(defaultOptions)},
         props,
@@ -99,3 +100,16 @@ export const DefaultTable: React.FC<TableProps> = (props) => {
 
 export const Table = DefaultTable;
 
+export function makeActionStyles(column) {
+    return (theme: Theme) => {
+        const copyTheme = cloneDeep(theme);
+        const selector = `&[data-testeid^=MuiDataTableBodyCell-${column}]`;
+        if (copyTheme.overrides?.MUIDataTableBodyCell?.root) {
+            copyTheme.overrides.MUIDataTableBodyCell.root[selector] = {
+                paddingTop: '0px',
+                paddingBottom: '0px',
+            };
+        }
+        return copyTheme;
+    }
+}

@@ -5,7 +5,11 @@ import {formatIsoToDTH} from "../../utils/date";
 import categoryHttp from "../../services/http/category-http";
 import {BadgeNo, BadgeYes} from "../../components/Badge";
 import {Category, ListResponse} from "../../services/models";
-import {DefaultTable, TableColumn} from "../../components/Table";
+import {DefaultTable, makeActionStyles, TableColumn} from "../../components/Table";
+import {MuiThemeProvider} from "@material-ui/core/styles";
+import {IconButton} from "@material-ui/core";
+import EditIcon from "@material-ui/icons/Edit";
+import {Link} from "react-router-dom";
 
 const columnDefinitions: TableColumn[] = [
     {
@@ -45,6 +49,20 @@ const columnDefinitions: TableColumn[] = [
         name: 'actions',
         label: 'Ações',
         width: '13%',
+        options: {
+            sort: false,
+            customBodyRender(value, tableMeta, updateValue): JSX.Element {
+                return (
+                    <IconButton
+                        color={'secondary'}
+                        component={Link}
+                        to={`/categories/${tableMeta.rowData[0]}/edit`}
+                    >
+                        <EditIcon />
+                    </IconButton>
+                );
+            }
+        }
     },
 ];
 
@@ -78,12 +96,14 @@ const Table = (props: Props) => {
     }, []);
 
     return (
-        <DefaultTable
-            isLoading={loading}
-            columns={columnDefinitions}
-            data={data}
-            title={""}
-        />
+        <MuiThemeProvider theme={makeActionStyles(columnDefinitions.length-1)}>
+            <DefaultTable
+                isLoading={loading}
+                columns={columnDefinitions}
+                data={data}
+                title={""}
+            />
+        </MuiThemeProvider>
     );
 };
 
