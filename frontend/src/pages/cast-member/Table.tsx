@@ -9,6 +9,7 @@ import {IconButton} from "@material-ui/core";
 import {Link} from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
 import {MuiThemeProvider} from "@material-ui/core/styles";
+import {useSnackbar} from "notistack";
 
 const columnDefinitions: TableColumn[] = [
     {
@@ -64,6 +65,7 @@ type Props = {
 };
 const Table = (props: Props) => {
 
+    const snackBar = useSnackbar();
     const [data, setData] = useState<CastMember[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -78,7 +80,11 @@ const Table = (props: Props) => {
                 if (isCancelled) return;
                 setData(data.data);
             } catch (e) {
-
+                console.log(e)
+                snackBar.enqueueSnackbar(
+                    'Não foi possível carregar as informações',
+                    {variant: "error"}
+                );
             } finally {
                 setLoading(false);
             }
@@ -87,7 +93,7 @@ const Table = (props: Props) => {
         return () => {
             isCancelled = true;
         }
-    }, []);
+    }, [snackBar]);
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnDefinitions.length-1)}>

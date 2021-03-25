@@ -4,6 +4,9 @@ import MUIDataTable, {MUIDataTableColumn, MUIDataTableOptions, MUIDataTableProps
 import {merge, omit, cloneDeep} from 'lodash';
 import {MuiThemeProvider, useTheme} from "@material-ui/core";
 import {Theme} from "@material-ui/core/styles";
+import DebounceTableSearch from "./DebounceTableSearch";
+
+export const limparSearch = '|-|LIMPAR|-|';
 
 const defaultOptions: MUIDataTableOptions = {
     print: false,
@@ -40,6 +43,19 @@ const defaultOptions: MUIDataTableOptions = {
             delete: "Excluir",
             deleteAria: "Excluir registros selecionados",
         }
+    },
+    customSearchRender: (
+        searchText: string,
+        handleSearch: (text: string) => void,
+        hideSearch: () => void,
+        options: any,
+    ) => {
+        return <DebounceTableSearch
+            searchText={searchText}
+            onSearch={handleSearch}
+            onHide={hideSearch}
+            options={options}
+        />
     }
 };
 
