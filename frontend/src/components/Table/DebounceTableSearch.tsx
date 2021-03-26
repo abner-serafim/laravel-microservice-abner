@@ -57,7 +57,7 @@ const DebounceTableSearch = ({ options, searchText, onSearch, onHide }) => {
             notOnSearch = true;
             setSearchTextState('');
         }
-    }, [searchTextOrigDebounce, onSearch]);
+    }, [searchTextOrigDebounce, searchTextState]);
 
     const handleTextChange = event => {
         setSearchTextState(event.target.value);
