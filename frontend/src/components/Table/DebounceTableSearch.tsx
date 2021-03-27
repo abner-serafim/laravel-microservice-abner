@@ -5,8 +5,8 @@ import SearchIcon from '@material-ui/icons/Search';
 import IconButton from '@material-ui/core/IconButton';
 import ClearIcon from '@material-ui/icons/Clear';
 import { makeStyles } from '@material-ui/core/styles';
-import {useDebounce} from "../../utils/hooks";
 import {limparSearch} from "./index";
+import {useDebounce} from "use-debounce";
 
 const useStyles = makeStyles(
     theme => ({
@@ -31,35 +31,21 @@ const useStyles = makeStyles(
     { name: 'MUIDataTableSearch' },
 );
 
-let notOnSearch = false;
+let notOnSearch: number = 0;
 
 const DebounceTableSearch = ({ options, searchText, onSearch, onHide }) => {
     const classes = useStyles();
 
     const [searchTextState, setSearchTextState] = useState<string>(!searchText || searchText === limparSearch ? '' : searchText);
-    const searchTextDebounce = useDebounce(searchTextState, 500);
-    const searchTextOrigDebounce = useDebounce(searchText, 50);
-
-    // console.log({searchText, searchTextState, searchTextDebounce});
+    const [searchTextDebounce] = useDebounce(searchTextState, 700);
 
     useEffect(() => {
-        if (notOnSearch) {
-            notOnSearch = false;
-            return;
-        }
         onSearch(searchTextDebounce);
+        notOnSearch = 0;
     }, [searchTextDebounce, onSearch]);
 
-    useEffect(() => {
-        if (searchTextOrigDebounce !== limparSearch) return;
-
-        if (searchTextState !== '') {
-            notOnSearch = true;
-            setSearchTextState('');
-        }
-    }, [searchTextOrigDebounce, searchTextState]);
-
     const handleTextChange = event => {
+        notOnSearch = 2;
         setSearchTextState(event.target.value);
     };
 
@@ -68,6 +54,16 @@ const DebounceTableSearch = ({ options, searchText, onSearch, onHide }) => {
             onHide();
         }
     };
+
+    if (searchText === limparSearch && notOnSearch === 0) {
+        notOnSearch = 1;
+    }
+
+    let value = searchTextState;
+
+    if (notOnSearch === 1) {
+        value = '';
+    }
 
     return (
         <Grow appear in={true} timeout={300}>
@@ -82,7 +78,7 @@ const DebounceTableSearch = ({ options, searchText, onSearch, onHide }) => {
                     inputProps={{
                         'aria-label': options.textLabels.toolbar.search,
                     }}
-                    value={searchTextState || ''}
+                    value={value || ''}
                     onKeyDown={onKeyDown}
                     onChange={handleTextChange}
                     fullWidth={true}

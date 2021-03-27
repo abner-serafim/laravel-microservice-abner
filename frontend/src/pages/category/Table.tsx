@@ -5,13 +5,14 @@ import {formatIsoToDTH} from "../../utils/date";
 import categoryHttp from "../../services/http/category-http";
 import {BadgeNo, BadgeYes} from "../../components/Badge";
 import {Category, ListResponse} from "../../services/models";
-import {DefaultTable, limparSearch, makeActionStyles, TableColumn} from "../../components/Table";
+import {DefaultTable, makeActionStyles, TableColumn} from "../../components/Table";
 import {MuiThemeProvider} from "@material-ui/core/styles";
 import {IconButton} from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import {Link} from "react-router-dom";
 import {useSnackbar} from "notistack";
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
+import useFilter from "../../hooks/useFilter";
 
 const columnDefinitions: TableColumn[] = [
     {
@@ -68,65 +69,34 @@ const columnDefinitions: TableColumn[] = [
     },
 ];
 
-interface Pagination {
-    page: number;
-    total: number;
-    per_page: number;
-}
-
-interface Order {
-    sort: string | null;
-    dir: string | null;
-}
-
-interface SearchState {
-    search: string | undefined;
-    pagination: Pagination;
-    order: Order;
-}
-
-type Props = {
-
-};
-const Table = (props: Props) => {
-    const initialState = {
-        search: '',
-        pagination: {
-            page: 1,
-            total: 0,
-            per_page: 10
-        },
-        order: {
-            sort: null,
-            dir: null,
-        }
-    };
+const Table = () => {
     const snackBar = useSnackbar();
     const isCancel = useRef(false);
     const [data, setData] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const [searchState, setSearchState] = useState<SearchState>(initialState);
+    const [search, setSearch] = useState<boolean>(false);
+    const {
+        filterManager,
+        filterState,
+        debouncedFilterState,
+        totalRecords,
+        setTotalRecords
+    } = useFilter();
     const getDataCallback = useCallback(async () => {
         setData([]);
         setLoading(true);
 
         try {
             const {data} = await categoryHttp.list<ListResponse<Category>>({queryParams: {
-                    search: cleanSearchText(searchState.search),
-                    page: searchState.pagination.page,
-                    per_page: searchState.pagination.per_page,
-                    sort: searchState.order.sort,
-                    dir: searchState.order.dir,
+                    search: search,
+                    page: debouncedFilterState.pagination.page,
+                    per_page: debouncedFilterState.pagination.per_page,
+                    sort: debouncedFilterState.order.sort,
+                    dir: debouncedFilterState.order.dir,
                 }});
             if (isCancel.current) return;
             setData(data.data);
-            setSearchState(prevState => ({
-                ...prevState,
-                pagination: {
-                    ...prevState.pagination,
-                    total: data.meta.total
-                }
-            }))
+            setTotalRecords(data.meta.total);
         } catch (e) {
             console.log(e)
             if (categoryHttp.isCancelledRequest(e)) {
@@ -141,37 +111,39 @@ const Table = (props: Props) => {
             setLoading(false);
         }
     }, [
-        searchState.search,
-        searchState.pagination.page,
-        searchState.pagination.per_page,
-        searchState.order.sort,
-        searchState.order.dir,
+        search,
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order.sort,
+        debouncedFilterState.order.dir,
+        setTotalRecords,
         snackBar
     ]);
 
-    function cleanSearchText(text) {
-        let newText = text;
-        if (text === limparSearch) {
-            newText = '';
-        }
-        return newText;
-    }
-
     useEffect(() => {
         isCancel.current = false;
-        getDataCallback();
+        getDataCallback().then(r => {});
         return () => {
             isCancel.current = true;
         }
     }, [
-        searchState.search,
-        searchState.pagination.page,
-        searchState.pagination.per_page,
-        searchState.order,
+        search,
+        debouncedFilterState.pagination.page,
+        debouncedFilterState.pagination.per_page,
+        debouncedFilterState.order,
         getDataCallback
     ]);
 
-    //console.log({teste: searchState.search})
+    useEffect(() => {
+        let text = filterManager.cleanFilterText(debouncedFilterState.search);
+        if (text !== search) {
+            setSearch(text);
+        }
+    }, [
+        search,
+        debouncedFilterState.search,
+        filterManager
+    ]);
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnDefinitions.length-1)}>
@@ -182,62 +154,24 @@ const Table = (props: Props) => {
                 title={""}
                 options={{
                     serverSide: true,
-                    searchText: searchState.search,
-                    page: searchState.pagination.page-1,
-                    rowsPerPage: searchState.pagination.per_page,
-                    count: searchState.pagination.total,
+                    searchText: filterState.search,
+                    page: filterState.pagination.page-1,
+                    rowsPerPage: filterState.pagination.per_page,
+                    count: totalRecords,
+                    rowsPerPageOptions: filterManager.rowsPerPageOptions,
                     sortOrder: {
-                        direction: searchState.order.dir === "desc" ? "desc" : "asc",
-                        name: searchState.order.sort + ""
+                        direction: filterState.order.dir === "desc" ? "desc" : "asc",
+                        name: filterState.order.sort + ""
                     },
                     customToolbar: () => (
                         <FilterResetButton
-                            handleClick={() => {
-                                setSearchState({
-                                    ...initialState,
-                                    search: limparSearch
-                                });
-                            }}
+                            handleClick={() => filterManager.reset()}
                         />
                     ),
-                    onSearchChange: (value) => {
-                        value = value || '';
-                        setSearchState(prevState => ({
-                            ...prevState,
-                            search: `${value}`,
-                            pagination: {
-                                ...prevState.pagination,
-                                page: 1
-                            }
-                        }));
-                    },
-                    onChangePage: (value) => {
-                        setSearchState(prevState => ({
-                            ...prevState,
-                            pagination: {
-                                ...prevState.pagination,
-                                page: value + 1
-                            }
-                        }));
-                    },
-                    onChangeRowsPerPage: (value) => {
-                        setSearchState(prevState => ({
-                            ...prevState,
-                            pagination: {
-                                ...prevState.pagination,
-                                per_page: value
-                            }
-                        }));
-                    },
-                    onColumnSortChange: (changedColumn, direction) => {
-                        setSearchState(prevState => ({
-                            ...prevState,
-                            order: {
-                                sort: changedColumn,
-                                dir: direction
-                            }
-                        }));
-                    }
+                    onSearchChange: searchText => filterManager.changeSearch(searchText),
+                    onChangePage: currentPage => filterManager.changePage(currentPage),
+                    onChangeRowsPerPage: numberOfRows => filterManager.changePerPage(numberOfRows),
+                    onColumnSortChange: (changedColumn, direction) => filterManager.changeColumnSort(changedColumn, direction)
                 }}
             />
         </MuiThemeProvider>
