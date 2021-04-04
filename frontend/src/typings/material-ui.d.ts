@@ -1,10 +1,3 @@
-import {
-    MUIDataTableBodyCell, MUIDataTableBodyRow,
-    MUIDataTableHeadCell, MUIDataTablePagination,
-    MUIDataTableSelectCell,
-    MUIDataTableToolbar,
-    MUIDataTableToolbarSelect
-} from "mui-datatables";
 import {PaletteColorOptions} from "@material-ui/core";
 
 declare module '@material-ui/core/styles/overrides' {
@@ -17,5 +10,6 @@ declare module '@material-ui/core/styles/overrides' {
         MUIDataTableToolbarSelect: MUIDataTableToolbarSelect;
         MUIDataTableBodyRow: MUIDataTableBodyRow;
         MUIDataTablePagination: MUIDataTablePagination;
+        MUIDataTableFilterList: MUIDataTableFilterList;
     }
 }

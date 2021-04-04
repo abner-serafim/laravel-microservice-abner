@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
-import {Box, Button, ButtonProps, Checkbox, FormControlLabel, TextField} from "@material-ui/core";
-import {makeStyles, Theme} from "@material-ui/core/styles";
+import {Box, Checkbox, FormControlLabel, TextField} from "@material-ui/core";
 import {useForm} from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import categoryHttp from "../../services/http/category-http";
@@ -9,17 +8,9 @@ import yup from "../../utils/vendor/yup";
 import {useEffect, useState} from "react";
 import {useHistory, useParams} from "react-router";
 import {useSnackbar} from "notistack";
-
-const useStyles = makeStyles((theme: Theme) => ({
-    submit: {
-        margin: theme.spacing(1)
-    }
-}));
-
-type Inputs = {
-    name: string;
-    is_active: boolean;
-}
+import {Category, Response} from "../../services/models";
+import {SubmitActions} from "../../components/SubmitActions";
+import {DefaultForm} from "../../components/DefaultForm";
 
 const schema = yup.object().shape({
     name: yup.string().label("Nome").required().min(3).max(255),
@@ -39,8 +30,9 @@ export const Form = (props: Props) => {
         handleSubmit,
         getValues,
         setValue,
-        reset
-    } = useForm<Inputs>({
+        reset,
+        trigger
+    } = useForm<Category>({
         resolver: yupResolver(schema),
         defaultValues: {
             name: "",
@@ -48,26 +40,21 @@ export const Form = (props: Props) => {
         }
     });
 
-    const classes = useStyles();
     const snackbar = useSnackbar();
     const history = useHistory();
-    const [category, setCategory] = useState<{id: string} | null>(null);
+    const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const buttonProps: ButtonProps = {
-        variant: "contained",
-        color: "secondary",
-        className: classes.submit,
-        disabled: loading
-    };
 
     useEffect(() => {
         if (!id) return;
 
-        async function getCategory() {
+        let isCancelled = false;
+
+        (async () => {
             setLoading(true);
             try {
-                const {data: {data}} = await categoryHttp.get(id);
+                const {data: {data}} = await categoryHttp.get<Response<Category>>(id);
+                if (isCancelled) return;
                 setCategory(data);
                 reset(data);
             } catch (e) {
@@ -75,17 +62,19 @@ export const Form = (props: Props) => {
             } finally {
                 setLoading(false);
             }
-        }
+        })();
 
-        getCategory();
+        return () => {
+            isCancelled = true;
+        }
     }, [id, reset]);
 
     async function onSubmit(formData, event) {
         setLoading(true);
         try {
             const http = !category
-                ? categoryHttp.create(formData)
-                : categoryHttp.update(category.id, formData)
+                ? categoryHttp.create<Response<Category>>(formData)
+                : categoryHttp.update<Response<Category>>(category.id, formData)
             ;
 
             const {data: {data}} = await http;
@@ -111,10 +100,8 @@ export const Form = (props: Props) => {
         }
     }
 
-    const nameButton = !id ? 'Salvar' : 'Atualizar';
-
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 inputRef={register}
                 name="name"
@@ -151,10 +138,13 @@ export const Form = (props: Props) => {
                     />
                 } label={"Ativo?"} />
             </Box>
-            <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>{nameButton}</Button>
-                <Button {...buttonProps} type="submit">{nameButton} e continuar editando</Button>
-            </Box>
-        </form>
+            <SubmitActions
+                atualizar={id !== null && id !== undefined}
+                loading={loading}
+                onClick={async () => {
+                    if (await trigger()) await onSubmit(getValues(), null)
+                }}
+            />
+        </DefaultForm>
     );
 };

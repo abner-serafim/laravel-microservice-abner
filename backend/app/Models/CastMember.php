@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\ModelFilters\CastMemberFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CastMember extends Model
 {
-    use HasFactory, SoftDeletes, Traids\Uuid;
+    use HasFactory, SoftDeletes, Traids\Uuid, Filterable;
 
     const TYPE_DIRECTOR = 1;
     const TYPE_ACTOR = 2;
@@ -26,4 +28,9 @@ class CastMember extends Model
     ];
 
     public $incrementing = false;
+
+    public function modelFilter()
+    {
+        return $this->provideFilter(CastMemberFilter::class);
+    }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
+use EloquentFilter\Filterable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -13,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 abstract class BasicCrudController extends Controller
 {
-    protected int $paginationSize = 15;
+    protected int $defaultPerPage = 15;
     protected bool $useTransaction = true;
 
     protected abstract function getModel(): string;
@@ -23,9 +25,21 @@ abstract class BasicCrudController extends Controller
     protected abstract function getResourceCollection();
     protected abstract function handleRelations($obj, Request $request): void;
 
-    public function index()
+    public function index(Request $request)
     {
-        $data = !$this->paginationSize ? $this->getModel()::all() : $this->getModel()::paginate($this->paginationSize);
+        $perPage = (int) $request->get('per_page', $this->defaultPerPage);
+        $hasFilter = in_array(Filterable::class, class_uses($this->getModel()));
+
+        $query = $this->queryBuilder();
+
+        if ($hasFilter) {
+            $query = $query->filter($request->all());
+        }
+
+        $data = $request->has('all') || !$this->defaultPerPage
+            ? $query->get()
+            : $query->paginate($perPage);
+
         $resourceCollection = $this->getResourceCollection();
         $refClass = new \ReflectionClass($this->getResourceCollection());
         return $refClass->isSubclassOf(ResourceCollection::class)
@@ -55,7 +69,7 @@ abstract class BasicCrudController extends Controller
 
     public function storeDB(Request $request, array $validationData)
     {
-        $obj = $this->getModel()::create($validationData);
+        $obj = $this->queryBuilder()->create($validationData);
         $this->handleRelations($obj, $request);
         return $obj;
     }
@@ -64,7 +78,7 @@ abstract class BasicCrudController extends Controller
     {
         $model = $this->getModel();
         $keyName = (new $model)->getRouteKeyName();
-        return $this->getModel()::where($keyName, $id)->firstOrFail();
+        return $this->queryBuilder()->where($keyName, $id)->firstOrFail();
     }
 
     public function show($id)
@@ -107,5 +121,10 @@ abstract class BasicCrudController extends Controller
         $obj = $this->findOrFail($id);
         $obj->delete();
         return response()->noContent();
+    }
+
+    protected function queryBuilder(): Builder
+    {
+        return $this->getModel()::query();
     }
 }
