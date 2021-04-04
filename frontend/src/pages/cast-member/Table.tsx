@@ -138,6 +138,8 @@ const Table = (props: Props) => {
     const typeFilterValue = filterState.extraFilter && filterState.extraFilter.type;
     (columnType.options as any).filterList = typeFilterValue ? [typeFilterValue] : [];
 
+    const typeFilter = debouncedFilterState.extraFilter?.type;
+
     const getDataCallback = useCallback(async () => {
         setData([]);
         setLoading(true);
@@ -151,9 +153,8 @@ const Table = (props: Props) => {
                     sort: debouncedFilterState.order.sort,
                     dir: debouncedFilterState.order.dir,
                     ...(
-                        debouncedFilterState.extraFilter &&
-                        debouncedFilterState.extraFilter.type &&
-                        {type: invert(CastMemberTypeMap)[debouncedFilterState.extraFilter?.type]}
+                        typeFilter &&
+                        {type: invert(CastMemberTypeMap)[typeFilter]}
                     ),
                 }
             });
@@ -179,7 +180,7 @@ const Table = (props: Props) => {
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order.sort,
         debouncedFilterState.order.dir,
-        debouncedFilterState.extraFilter?.type,
+        typeFilter,
         setTotalRecords,
         snackBar
     ]);

@@ -4,7 +4,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import {formatIsoToDTH} from "../../utils/date";
 import {BadgeNo, BadgeYes} from "../../components/Badge";
 import genreHttp from "../../services/http/genre-http";
-import {CastMemberTypeMap, Category, Genre, ListResponse, Response} from "../../services/models";
+import {Category, Genre, ListResponse} from "../../services/models";
 import {DefaultTable, makeActionStyles, TableColumn} from "../../components/Table";
 import {IconButton} from "@material-ui/core";
 import {Link} from "react-router-dom";
@@ -15,8 +15,6 @@ import useFilter from "../../hooks/useFilter";
 import categoryHttp from "../../services/http/category-http";
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
 import yup from "../../utils/vendor/yup";
-import {AxiosResponse} from "axios";
-import {invert} from "lodash";
 
 const columnDefinitions: TableColumn[] = [
     {
@@ -100,7 +98,7 @@ const Table = (props: Props) => {
     const snackBar = useSnackbar();
     const isCancel = useRef(false);
     const [data, setData] = useState<Genre[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
+    //const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [search, setSearch] = useState<boolean>(false);
     const {
@@ -157,7 +155,7 @@ const Table = (props: Props) => {
 
                 if (isCancelled) return;
 
-                setCategories(res.data.data);
+                //setCategories(res.data.data);
                 (columnCategories.options as any).filterOptions.names = res.data.data.map(category => category.name);
             } catch (e) {
                 console.log(e)
@@ -173,7 +171,10 @@ const Table = (props: Props) => {
         return () => {
             isCancelled = true;
         }
+        // eslint-disable-next-line
     }, []);
+
+    const categoriesFilter = debouncedFilterState.extraFilter?.categories;
 
     const getDataCallback = useCallback(async () => {
         setData([]);
@@ -188,9 +189,8 @@ const Table = (props: Props) => {
                     sort: debouncedFilterState.order.sort,
                     dir: debouncedFilterState.order.dir,
                     ...(
-                        debouncedFilterState.extraFilter &&
-                        debouncedFilterState.extraFilter.categories &&
-                        {categories: debouncedFilterState.extraFilter?.categories.join(',')}
+                        categoriesFilter &&
+                        {categories: categoriesFilter.join(',')}
                     ),
                 }
             });
@@ -216,7 +216,7 @@ const Table = (props: Props) => {
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order.sort,
         debouncedFilterState.order.dir,
-        debouncedFilterState.extraFilter?.categories,
+        categoriesFilter,
         setTotalRecords,
         snackBar
     ]);
