@@ -20,6 +20,7 @@ const columnDefinitions: TableColumn[] = [
         label: 'ID',
         width: '33%',
         options: {
+            filter: false,
             sort: false,
         },
     },
@@ -27,12 +28,16 @@ const columnDefinitions: TableColumn[] = [
         name: 'name',
         label: 'Nome',
         width: '40%',
+        options: {
+            filter: false,
+        },
     },
     {
         name: 'is_active',
         label: 'Ativo?',
         width: '4%',
         options: {
+            filter: false,
             customBodyRender(value, tableMeta, updateValue) {
                 return value ? <BadgeYes /> : <BadgeNo />;
             }
@@ -43,6 +48,7 @@ const columnDefinitions: TableColumn[] = [
         label: 'Criado em',
         width: '10%',
         options: {
+            filter: false,
             customBodyRender(value, tableMeta, updateValue) {
                 return <span>{formatIsoToDTH(value)}</span>;
             }
@@ -53,6 +59,7 @@ const columnDefinitions: TableColumn[] = [
         label: 'Ações',
         width: '13%',
         options: {
+            filter: false,
             sort: false,
             customBodyRender(value, tableMeta, updateValue): JSX.Element {
                 return (
@@ -81,19 +88,24 @@ const Table = () => {
         debouncedFilterState,
         totalRecords,
         setTotalRecords
-    } = useFilter();
+    } = useFilter({
+        columns: columnDefinitions
+    });
+
     const getDataCallback = useCallback(async () => {
         setData([]);
         setLoading(true);
 
         try {
-            const {data} = await categoryHttp.list<ListResponse<Category>>({queryParams: {
+            const {data} = await categoryHttp.list<ListResponse<Category>>({
+                queryParams: {
                     search: search,
                     page: debouncedFilterState.pagination.page,
                     per_page: debouncedFilterState.pagination.per_page,
                     sort: debouncedFilterState.order.sort,
                     dir: debouncedFilterState.order.dir,
-                }});
+                }
+            });
             if (isCancel.current) return;
             setData(data.data);
             setTotalRecords(data.meta.total);
@@ -122,15 +134,12 @@ const Table = () => {
 
     useEffect(() => {
         isCancel.current = false;
+        filterManager.pushHistory();
         getDataCallback().then(r => {});
         return () => {
             isCancel.current = true;
         }
-    }, [
-        search,
-        debouncedFilterState.pagination.page,
-        debouncedFilterState.pagination.per_page,
-        debouncedFilterState.order,
+    }, [ // eslint-disable-line react-hooks/exhaustive-deps
         getDataCallback
     ]);
 
@@ -139,10 +148,9 @@ const Table = () => {
         if (text !== search) {
             setSearch(text);
         }
-    }, [
+    }, [ // eslint-disable-line react-hooks/exhaustive-deps
         search,
-        debouncedFilterState.search,
-        filterManager
+        debouncedFilterState.search
     ]);
 
     return (

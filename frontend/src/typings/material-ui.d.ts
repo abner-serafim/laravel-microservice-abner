@@ -10,5 +10,6 @@ declare module '@material-ui/core/styles/overrides' {
         MUIDataTableToolbarSelect: MUIDataTableToolbarSelect;
         MUIDataTableBodyRow: MUIDataTableBodyRow;
         MUIDataTablePagination: MUIDataTablePagination;
+        MUIDataTableFilterList: MUIDataTableFilterList;
     }
 }
