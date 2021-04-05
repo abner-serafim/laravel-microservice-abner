@@ -28,7 +28,9 @@ const ptBR: LocaleObject = {
     },
     mixed: {
         // eslint-disable-next-line
-        required: '${path} é obrigatório'
+        required: '${path} é obrigatório',
+        // eslint-disable-next-line
+        notType: '${path} é inválido'
     },
     string: {
         // eslint-disable-next-line

@@ -6,6 +6,8 @@ import CategoryPageList from "../pages/category/PageList";
 import CategoryPageForm from "../pages/category/PageForm";
 import GenrePageList from "../pages/genre/PageList";
 import GenrePageForm from "../pages/genre/PageForm";
+import VideoPageList from "../pages/video/PageList";
+import VideoPageForm from "../pages/video/PageForm";
 
 export interface MyRouteProps extends RouteProps {
     name: string,
@@ -43,21 +45,21 @@ const routes: MyRouteProps[] = [
     },
     {
         name: 'categories.list',
-        label: 'Listar Categorias',
+        label: 'Listar categorias',
         path: '/categories',
         component: CategoryPageList,
         exact: true
     },
     {
         name: 'categories.create',
-        label: 'Criar Categoria',
+        label: 'Criar categoria',
         path: '/categories/create',
         component: CategoryPageForm,
         exact: true
     },
     {
         name: 'categories.edit',
-        label: 'Editar Categoria',
+        label: 'Editar categoria',
         path: '/categories/:id/edit',
         component: CategoryPageForm,
         exact: true
@@ -81,6 +83,27 @@ const routes: MyRouteProps[] = [
         label: 'Editar gênero',
         path: '/genres/:id/edit',
         component: GenrePageForm,
+        exact: true
+    },
+    {
+        name: 'videos.list',
+        label: 'Listar vídeos',
+        path: '/videos',
+        component: VideoPageList,
+        exact: true
+    },
+    {
+        name: 'videos.create',
+        label: 'Criar vídeo',
+        path: '/videos/create',
+        component: VideoPageForm,
+        exact: true
+    },
+    {
+        name: 'videos.edit',
+        label: 'Editar vídeo',
+        path: '/videos/:id/edit',
+        component: VideoPageForm,
         exact: true
     },
 ];

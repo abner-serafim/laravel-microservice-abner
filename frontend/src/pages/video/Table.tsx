@@ -2,56 +2,41 @@
 import * as React from 'react';
 import {useCallback, useEffect, useRef, useState} from "react";
 import {formatIsoToDTH} from "../../utils/date";
-import {BadgeNo, BadgeYes} from "../../components/Badge";
-import genreHttp from "../../services/http/genre-http";
-import {Category, Genre, ListResponse} from "../../services/models";
-import {DefaultTable, makeActionStyles, TableColumn} from "../../components/Table";
-import {IconButton} from "@material-ui/core";
-import {Link} from "react-router-dom";
-import EditIcon from "@material-ui/icons/Edit";
-import {MuiThemeProvider} from "@material-ui/core/styles";
-import {useSnackbar} from "notistack";
-import useFilter from "../../hooks/useFilter";
 import categoryHttp from "../../services/http/category-http";
+import {BadgeNo, BadgeYes} from "../../components/Badge";
+import {Video, ListResponse} from "../../services/models";
+import {DefaultTable, makeActionStyles, TableColumn} from "../../components/Table";
+import {MuiThemeProvider} from "@material-ui/core/styles";
+import {IconButton} from "@material-ui/core";
+import EditIcon from "@material-ui/icons/Edit";
+import {Link} from "react-router-dom";
+import {useSnackbar} from "notistack";
 import {FilterResetButton} from "../../components/Table/FilterResetButton";
-import yup from "../../utils/vendor/yup";
+import useFilter from "../../hooks/useFilter";
+import videoHttp from "../../services/http/video-http";
 
 const columnDefinitions: TableColumn[] = [
     {
         name: 'id',
         label: 'ID',
-        width: '25%',
+        width: '33%',
         options: {
             filter: false,
-            sort: false
+            sort: false,
         },
     },
     {
-        name: 'name',
-        label: 'Nome',
-        width: '25%',
+        name: 'title',
+        label: 'Título',
+        width: '40%',
         options: {
             filter: false,
         },
     },
     {
-        name: 'categories',
-        label: 'Categorias',
-        width: '25%',
-        options: {
-            filterType: 'multiselect',
-            filterOptions: {
-                names: [],
-                fullWidth: true
-            },
-            customBodyRender(values, tableMeta, updateValue) {
-                return values && values.map((value: Category) => value.name).join(', ');
-            }
-        }
-    },
-    {
-        name: 'is_active',
-        label: 'Ativo?',
+        name: 'opened',
+        label: 'Aberto?',
+        width: '4%',
         options: {
             filter: false,
             customBodyRender(value, tableMeta, updateValue) {
@@ -62,6 +47,7 @@ const columnDefinitions: TableColumn[] = [
     {
         name: 'created_at',
         label: 'Criado em',
+        width: '10%',
         options: {
             filter: false,
             customBodyRender(value, tableMeta, updateValue) {
@@ -81,7 +67,7 @@ const columnDefinitions: TableColumn[] = [
                     <IconButton
                         color={'secondary'}
                         component={Link}
-                        to={`/genres/${tableMeta.rowData[0]}/edit`}
+                        to={`/categories/${tableMeta.rowData[0]}/edit`}
                     >
                         <EditIcon />
                     </IconButton>
@@ -91,14 +77,10 @@ const columnDefinitions: TableColumn[] = [
     },
 ];
 
-type Props = {
-
-};
-const Table = (props: Props) => {
+const Table = () => {
     const snackBar = useSnackbar();
     const isCancel = useRef(false);
-    const [data, setData] = useState<Genre[]>([]);
-    //const [categories, setCategories] = useState<Category[]>([]);
+    const [data, setData] = useState<Video[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [search, setSearch] = useState<boolean>(false);
     const {
@@ -108,89 +90,21 @@ const Table = (props: Props) => {
         totalRecords,
         setTotalRecords
     } = useFilter({
-        columns: columnDefinitions,
-        extraFilter: {
-            createValidationSchema: () => {
-                return yup.object().shape({
-                    categories: yup.mixed()
-                        .nullable()
-                        .transform(value => {
-                            return !value || value === '' ? undefined : value.split(',');
-                        })
-                        .default(null)
-                });
-            },
-            formatSearchParams: (debouncedState) => {
-                return debouncedState.extraFilter
-                    ? {
-                        ...(
-                            debouncedState.extraFilter.categories &&
-                            { categories: debouncedState.extraFilter.categories.join(',') }
-                        )
-                    }
-                    : undefined
-            },
-            getStateFromURL: (queryParams) => {
-                return {
-                    categories: queryParams.get('categories')
-                }
-            }
-        }
+        columns: columnDefinitions
     });
-
-    const columns = filterManager.columns;
-    const indexColumnCategories = columns.findIndex(c => c.name === 'categories');
-    const columnCategories = columns[indexColumnCategories];
-    const categoriesFilterValue = filterState.extraFilter && filterState.extraFilter.categories;
-    (columnCategories.options as any).filterList = categoriesFilterValue ? categoriesFilterValue : [];
-
-    useEffect(() => {
-        let isCancelled = false;
-
-        (async () => {
-            setLoading(true);
-
-            try {
-                const res = await categoryHttp.list<ListResponse<Category>>({queryParams: {all: ''}});
-
-                if (isCancelled) return;
-
-                //setCategories(res.data.data);
-                (columnCategories.options as any).filterOptions.names = res.data.data.map(category => category.name);
-            } catch (e) {
-                console.log(e)
-                snackBar.enqueueSnackbar(
-                    'Não foi possível carregar as informações',
-                    {variant: "error"}
-                );
-            } finally {
-                setLoading(false);
-            }
-        })();
-
-        return () => {
-            isCancelled = true;
-        }
-    }, []);
-
-    const categoriesFilter = debouncedFilterState.extraFilter?.categories;
 
     const getDataCallback = useCallback(async () => {
         setData([]);
         setLoading(true);
 
         try {
-            const {data} = await genreHttp.list<ListResponse<Genre>>({
+            const {data} = await videoHttp.list<ListResponse<Video>>({
                 queryParams: {
                     search: search,
                     page: debouncedFilterState.pagination.page,
                     per_page: debouncedFilterState.pagination.per_page,
                     sort: debouncedFilterState.order.sort,
                     dir: debouncedFilterState.order.dir,
-                    ...(
-                        categoriesFilter &&
-                        {categories: categoriesFilter.join(',')}
-                    ),
                 }
             });
             if (isCancel.current) return;
@@ -215,7 +129,6 @@ const Table = (props: Props) => {
         debouncedFilterState.pagination.per_page,
         debouncedFilterState.order.sort,
         debouncedFilterState.order.dir,
-        categoriesFilter,
         setTotalRecords,
         snackBar
     ]);
@@ -249,7 +162,6 @@ const Table = (props: Props) => {
                 data={data}
                 title={""}
                 options={{
-
                     serverSide: true,
                     searchText: filterState.search,
                     page: filterState.pagination.page-1,
@@ -259,13 +171,6 @@ const Table = (props: Props) => {
                     sortOrder: {
                         direction: filterState.order.dir === "desc" ? "desc" : "asc",
                         name: filterState.order.sort + ""
-                    },
-                    onFilterChange: (changedColumn, filterList) => {
-                        const column = changedColumn as string;
-                        const columnIndex = columns.findIndex(c => c.name === column);
-                        filterManager.changeExtraFilter({
-                            [column]: filterList[columnIndex].length ? filterList[columnIndex] : null,
-                        });
                     },
                     customToolbar: () => (
                         <FilterResetButton

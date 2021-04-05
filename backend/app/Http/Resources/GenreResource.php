@@ -14,8 +14,10 @@ class GenreResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request) + [
+        $route = substr(route('api.genres.index'), -11);
+        $array = strpos($request->getPathInfo(), $route) === false ? [] : [
             'categories' => CategoryResource::collection($this->categories)
         ];
+        return parent::toArray($request) + $array;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\CastMember;
 use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,9 +15,11 @@ use Illuminate\Support\Facades\Storage;
 class VideoSeeder extends Seeder
 {
     public Collection $allGenres;
+    public Collection $allCastMembers;
     public array $relations = [
         'genres_id' => [],
         'categories_id' => [],
+        'cast_members_id' => [],
     ];
 
     /**
@@ -31,6 +34,7 @@ class VideoSeeder extends Seeder
 
         $self = $this;
         $self->allGenres = Genre::all();
+        $self->allCastMembers = CastMember::all();
         Model::reguard(); // mass assigment
         Video::factory(100)->make()->each(function (Video $video) use ($self) {
             $self->fetchRelations();
@@ -58,6 +62,7 @@ class VideoSeeder extends Seeder
         $genresId = $subGenres->pluck('id')->toArray();
         $this->relations['categories_id'] = $categoriesId;
         $this->relations['genres_id'] = $genresId;
+        $this->relations['cast_members_id'] = $this->allCastMembers->random(3)->pluck('id')->toArray();
     }
 
     public function getImageFile()
